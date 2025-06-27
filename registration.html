@@ -23,18 +23,13 @@
 
             <!-- Right Side: Form Panel -->
             <div class="form-panel">
+
                 <!-- Login Form -->
                 <div id="login-form">
                     <div class="form-header">
                         <h2>Welcome Back!</h2>
                         <p>Don't have an account? <a href="#" onclick="toggleForm('signup', event)">Sign Up</a></p>
                     </div>
-                    
-                    <div id="success-message" class="hidden success-message" role="alert">
-                        <strong class="font-bold">Success!</strong>
-                        <span class="block sm:inline">Your account was created. Please log in to continue.</span>
-                    </div>
-
                     <form id="login-form-element">
                         <div class="input-group">
                             <label for="login-email">Email Address</label>
@@ -50,10 +45,7 @@
                                 <input type="password" id="login-password" placeholder="Enter your password" required>
                             </div>
                         </div>
-                        <button type="submit" class="btn-submit">
-                            <span class="button-text">Log In</span>
-                            <span class="spinner hidden"></span>
-                        </button>
+                        <button type="submit" class="btn-submit">Log In</button>
                     </form>
                 </div>
 
@@ -96,10 +88,7 @@
                                 </select>
                             </div>
                         </div>
-                        <button type="submit" class="btn-submit">
-                            <span class="button-text">Sign Up</span>
-                            <span class="spinner hidden"></span>
-                        </button>
+                        <button type="submit" class="btn-submit">Sign Up</button>
                     </form>
                 </div>
                 
@@ -112,8 +101,10 @@
     <script>
         function toggleForm(formToShow, event) {
             if (event) event.preventDefault();
+
             const loginForm = document.getElementById('login-form');
             const signupForm = document.getElementById('signup-form');
+
             if (formToShow === 'signup') {
                 loginForm.classList.add('hidden');
                 signupForm.classList.remove('hidden');
@@ -129,107 +120,102 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
 
-    <!-- Load keys from the separate, gitignored file -->
+
     <script src="firebase-keys.js"></script>
-
-    <!-- Main Application Logic -->
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // --- AUTHENTICATION LOGIC ---
+
+        const signupForm = document.getElementById('signup-form-element');
+        const loginForm = document.getElementById('login-form-element');
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const formToShow = urlParams.get('form'); // will be 'signup' or 'login'
+        if (formToShow) {
+                toggleForm(formToShow);
+        }
+
+        // --- Registration Handler ---
+        signupForm.addEventListener('submit', e => {
+            e.preventDefault();
             
-            // Initialize Firebase using firebaseConfig from firebase-keys.js
-            firebase.initializeApp(firebaseConfig);
-            
-            // Define auth and db constants for use in functions
-            const auth = firebase.auth();
-            const db = firebase.firestore();
+            const fullName = signupForm['fullName'].value;
+            const email = signupForm['signup-email'].value;
+            const password = signupForm['signup-password'].value;
+            const userRole = signupForm['userRole'].value;
 
-            const signupFormEl = document.getElementById('signup-form-element');
-            const loginFormEl = document.getElementById('login-form-element');
-            const successMessageEl = document.getElementById('success-message');
-
-            function setLoading(button, isLoading) {
-                const buttonText = button.querySelector('.button-text');
-                const spinner = button.querySelector('.spinner');
-                button.disabled = isLoading;
-                buttonText.classList.toggle('hidden', isLoading);
-                spinner.classList.toggle('hidden', !isLoading);
-            }
-
-            signupFormEl.addEventListener('submit', e => {
-                e.preventDefault();
-                const signupButton = signupFormEl.querySelector('.btn-submit');
-                setLoading(signupButton, true);
-                
-                const fullName = signupFormEl['fullName'].value;
-                const email = signupFormEl['signup-email'].value;
-                const password = signupFormEl['signup-password'].value;
-                const userRole = signupFormEl['userRole'].value;
-
-                auth.createUserWithEmailAndPassword(email, password)
-                    .then(cred => db.collection('users').doc(cred.user.uid).set({
+            // 1. Create user in Firebase Authentication
+            auth.createUserWithEmailAndPassword(email, password)
+                .then(cred => {
+                    // 2. Save additional user data to Firestore
+                    // We use the user's unique ID (uid) from Auth as the document ID in Firestore
+                    return db.collection('users').doc(cred.user.uid).set({
                         name: fullName,
                         role: userRole,
                         email: email
-                    }))
-                    .then(() => {
-                        signupFormEl.reset();
-                        document.getElementById('login-email').value = email;
-                        successMessageEl.classList.remove('hidden');
-                        toggleForm('login');
-                    })
-                    .catch(err => {
-                        console.error("Registration Error:", err);
-                        alert('Error: ' + err.message);
-                    })
-                    .finally(() => setLoading(signupButton, false));
-            });
-
-            loginFormEl.addEventListener('submit', e => {
-                e.preventDefault();
-                const loginButton = loginFormEl.querySelector('.btn-submit');
-                setLoading(loginButton, true);
-                
-                const email = loginFormEl['login-email'].value;
-                const password = loginFormEl['login-password'].value;
-
-                auth.signInWithEmailAndPassword(email, password)
-                    .catch(err => {
-                        console.error("Login Error:", err);
-                        alert('Error: ' + err.message);
-                        setLoading(loginButton, false); 
                     });
-            });
-            
-            auth.onAuthStateChanged(user => {
-                if (user) {
-                    const loginButton = loginFormEl.querySelector('.btn-submit');
-                    if(loginButton.disabled) {
-                        db.collection('users').doc(user.uid).get()
-                            .then(doc => {
-                                if (doc.exists) {
-                                    redirectToDashboard(doc.data().role);
-                                } else {
-                                    throw new Error('User data not found.');
-                                }
-                            })
-                            .catch(err => {
-                                console.error(err);
-                                alert(err.message);
-                                setLoading(loginButton, false);
-                            });
-                    }
-                }
-            });
-
-            function redirectToDashboard(role) {
-                const dashboardPaths = {
-                    student: 'student_dashboard.html',
-                    teacher: 'teacher_dashboard.html',
-                    guardian: 'guardian_dashboard.html'
-                };
-                window.location.href = dashboardPaths[role] || 'index.html';
-            }
+                })
+                .then(() => {
+                    alert('Registration successful! Redirecting to your dashboard...');
+                    // 3. Redirect to the correct dashboard based on role
+                    redirectToDashboard(userRole);
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Error: ' + err.message);
+                });
         });
+
+        // --- Login Handler ---
+        loginForm.addEventListener('submit', e => {
+            e.preventDefault();
+            
+            const email = loginForm['login-email'].value;
+            const password = loginForm['login-password'].value;
+
+            // 1. Sign in the user with Firebase Authentication
+            auth.signInWithEmailAndPassword(email, password)
+                .then(cred => {
+                    // 2. Get the user's role from Firestore
+                    return db.collection('users').doc(cred.user.uid).get();
+                })
+                .then(doc => {
+                    if (doc.exists) {
+                        const userRole = doc.data().role;
+                        alert('Login successful! Redirecting...');
+                        // 3. Redirect to the correct dashboard
+                        redirectToDashboard(userRole);
+                    } else {
+                        // This case is unlikely if registration is done correctly, but good to have
+                        throw new Error('No user data found in the database!');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Error: ' + err.message);
+                });
+        });
+
+        // --- Helper function for redirection ---
+        function redirectToDashboard(role) {
+            if (role === 'student') {
+                window.location.href = 'Dashboard/student_dashboard.html';
+            } else if (role === 'teacher') {
+                window.location.href = 'Dashboard/teacher_dashboard.html';
+            } else if (role === 'guardian') {
+                window.location.href = 'Dashboard/guardian_dashboard.html';
+            } else {
+                // Fallback to a generic page or the home page if role is not set
+                window.location.href = 'index.html';
+            }
+        }
+
     </script>
 </body>
 </html>
