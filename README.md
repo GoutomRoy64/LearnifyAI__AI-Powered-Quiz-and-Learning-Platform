@@ -1,6 +1,6 @@
 # LearnifyAI - AI-Powered Quiz & Learning Platform
 
-![LearnifyAI Screenshot](https://i.imgur.com/eBvB1vS.png)
+
 
 ## 🚀 Abstract
 
