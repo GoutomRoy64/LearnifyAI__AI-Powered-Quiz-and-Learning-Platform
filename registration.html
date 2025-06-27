@@ -55,27 +55,31 @@
                         <h2>Create an Account</h2>
                         <p>Already have an account? <a href="#" onclick="toggleForm('login', event)">Log In</a></p>
                     </div>
-                    <form id="signup-form-element">
+                    <form id="signup-form-element" novalidate>
                         <div class="input-group">
                             <label for="fullName">Full Name</label>
                             <div class="input-field">
                                 <i class="fas fa-user"></i>
-                                <input type="text" id="fullName" placeholder="John Doe" required>
+                                <input type="text" id="fullName" placeholder="John Doe" required minlength="2" autocomplete="name">
                             </div>
+                            <span class="error-message" id="name-error"></span>
                         </div>
                         <div class="input-group">
                             <label for="signup-email">Email Address</label>
                             <div class="input-field">
                                 <i class="fas fa-envelope"></i>
-                                <input type="email" id="signup-email" placeholder="you@example.com" required>
+                                <input type="email" id="signup-email" placeholder="you@example.com" required autocomplete="email">
                             </div>
+                            <span class="error-message" id="email-error"></span>
                         </div>
                         <div class="input-group">
                             <label for="signup-password">Password</label>
                             <div class="input-field">
                                 <i class="fas fa-lock"></i>
-                                <input type="password" id="signup-password" placeholder="Minimum 8 characters" required>
+                                <input type="password" id="signup-password" placeholder="Minimum 8 characters" required minlength="8" autocomplete="new-password">
+                                <button type="button" id="toggle-password" tabindex="-1" style="background:none;border:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;"><i class="fas fa-eye"></i></button>
                             </div>
+                            <span class="error-message" id="password-error"></span>
                         </div>
                         <div class="input-group">
                             <label for="userRole">I am a...</label>
@@ -88,7 +92,8 @@
                                 </select>
                             </div>
                         </div>
-                        <button type="submit" class="btn-submit">Sign Up</button>
+                        <button type="submit" class="btn-submit" id="signup-btn">Sign Up</button>
+                        <div id="signup-loading" style="display:none;text-align:center;margin-top:10px;">Signing up...</div>
                     </form>
                 </div>
                 
@@ -141,35 +146,110 @@
                 toggleForm(formToShow);
         }
 
-        // --- Registration Handler ---
-        signupForm.addEventListener('submit', e => {
+        // --- ENHANCED SIGNUP LOGIC ---
+        const signupBtn = document.getElementById('signup-btn');
+        const signupLoading = document.getElementById('signup-loading');
+        const nameError = document.getElementById('name-error');
+        const emailError = document.getElementById('email-error');
+        const passwordError = document.getElementById('password-error');
+        const signupPassword = document.getElementById('signup-password');
+        const togglePassword = document.getElementById('toggle-password');
+
+        // Password visibility toggle
+        if (togglePassword) {
+            togglePassword.addEventListener('click', function() {
+                if (signupPassword.type === 'password') {
+                    signupPassword.type = 'text';
+                    togglePassword.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                } else {
+                    signupPassword.type = 'password';
+                    togglePassword.innerHTML = '<i class="fas fa-eye"></i>';
+                }
+            });
+        }
+
+        function validateEmail(email) {
+            // Simple email regex
+            return /^\S+@\S+\.\S+$/.test(email);
+        }
+
+        function validatePassword(password) {
+            // At least 8 chars, 1 letter, 1 number
+            return /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+\-=]{8,}$/.test(password);
+        }
+
+        function clearSignupErrors() {
+            nameError.textContent = '';
+            emailError.textContent = '';
+            passwordError.textContent = '';
+        }
+
+        signupForm.addEventListener('submit', async e => {
             e.preventDefault();
-            
-            const fullName = signupForm['fullName'].value;
-            const email = signupForm['signup-email'].value;
+            clearSignupErrors();
+            signupBtn.disabled = true;
+            signupLoading.style.display = 'block';
+
+            const fullName = signupForm['fullName'].value.trim();
+            const email = signupForm['signup-email'].value.trim();
             const password = signupForm['signup-password'].value;
             const userRole = signupForm['userRole'].value;
+            let valid = true;
 
-            // 1. Create user in Firebase Authentication
-            auth.createUserWithEmailAndPassword(email, password)
-                .then(cred => {
-                    // 2. Save additional user data to Firestore
-                    // We use the user's unique ID (uid) from Auth as the document ID in Firestore
-                    return db.collection('users').doc(cred.user.uid).set({
-                        name: fullName,
-                        role: userRole,
-                        email: email
-                    });
-                })
-                .then(() => {
-                    alert('Registration successful! Redirecting to your dashboard...');
-                    // 3. Redirect to the correct dashboard based on role
-                    redirectToDashboard(userRole);
-                })
-                .catch(err => {
-                    console.error(err);
-                    alert('Error: ' + err.message);
+            // Name validation
+            if (fullName.length < 2) {
+                nameError.textContent = 'Please enter your full name.';
+                signupForm['fullName'].focus();
+                valid = false;
+            }
+            // Email validation
+            if (!validateEmail(email)) {
+                emailError.textContent = 'Please enter a valid email address.';
+                if (valid) signupForm['signup-email'].focus();
+                valid = false;
+            }
+            // Password validation
+            if (!validatePassword(password)) {
+                passwordError.textContent = 'Password must be at least 8 characters and contain a letter and a number.';
+                if (valid) signupForm['signup-password'].focus();
+                valid = false;
+            }
+            if (!valid) {
+                signupBtn.disabled = false;
+                signupLoading.style.display = 'none';
+                return;
+            }
+
+            // Firebase registration
+            try {
+                // 1. Create user in Firebase Authentication
+                const cred = await auth.createUserWithEmailAndPassword(email, password);
+                // 2. Save additional user data to Firestore
+                await db.collection('users').doc(cred.user.uid).set({
+                    name: fullName,
+                    role: userRole,
+                    email: email
                 });
+                alert('Registration successful! Redirecting to your dashboard...');
+                redirectToDashboard(userRole);
+            } catch (err) {
+                // Friendly error messages
+                if (err.code === 'auth/email-already-in-use') {
+                    emailError.textContent = 'This email is already registered. Try logging in.';
+                    signupForm['signup-email'].focus();
+                } else if (err.code === 'auth/weak-password') {
+                    passwordError.textContent = 'Password is too weak. Please use a stronger password.';
+                    signupForm['signup-password'].focus();
+                } else if (err.code === 'auth/invalid-email') {
+                    emailError.textContent = 'Invalid email address.';
+                    signupForm['signup-email'].focus();
+                } else {
+                    alert('Error: ' + err.message);
+                }
+            } finally {
+                signupBtn.disabled = false;
+                signupLoading.style.display = 'none';
+            }
         });
 
         // --- Login Handler ---
