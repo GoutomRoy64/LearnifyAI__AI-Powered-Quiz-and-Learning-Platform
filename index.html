@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LearnifyAI - AI-Powered Quiz & Learning Platform</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" xintegrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        /* Simple transition for smooth scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- App Container -->
+    <div id="app" class="min-h-screen flex flex-col">
+
+        <!-- Header -->
+        <header class="bg-white shadow-md sticky top-0 z-50">
+            <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+                <a href="#" class="text-2xl font-bold text-gray-800 flex items-center">
+                    <i class="fas fa-brain text-indigo-600 mr-2"></i>
+                    <span>Learnify<span class="text-indigo-600">AI</span></span>
+                </a>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#features" class="text-gray-600 hover:text-indigo-600 transition duration-300">Features</a>
+                    <a href="#about" class="text-gray-600 hover:text-indigo-600 transition duration-300">About</a>
+                    <a href="#contact" class="text-gray-600 hover:text-indigo-600 transition duration-300">Contact</a>
+                </div>
+                <div class="hidden md:flex items-center space-x-2">
+                    <a href="registration.html" class="px-4 py-2 text-gray-800 font-semibold border border-gray-300 rounded-lg hover:bg-gray-100 transition duration-300">Log In</a>
+                    <a href="registration.html" class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition duration-300 shadow-sm">Sign Up</a>
+                </div>
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-button" class="md:hidden text-2xl">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </nav>
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="hidden md:hidden px-6 pb-4">
+                 <a href="#features" class="block py-2 text-gray-600 hover:text-indigo-600">Features</a>
+                 <a href="#about" class="block py-2 text-gray-600 hover:text-indigo-600">About</a>
+                 <a href="#contact" class="block py-2 text-gray-600 hover:text-indigo-600">Contact</a>
+                 <div class="mt-4 border-t pt-4">
+                    <a href="registration.html" class="block w-full text-center px-4 py-2 text-gray-800 font-semibold border border-gray-300 rounded-lg hover:bg-gray-100">Log In</a>
+                    <a href="registration.html" class="block w-full text-center mt-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700">Sign Up</a>
+                 </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow">
+            <!-- Hero Section -->
+            <section class="hero-section text-white">
+                <div class="container mx-auto px-6 py-24 text-center">
+                    <h1 class="text-4xl md:text-6xl font-bold mb-4">Smarter Learning, Instant Feedback</h1>
+                    <p class="text-lg md:text-xl mb-8 max-w-3xl mx-auto">LearnifyAI is an AI-powered platform that makes learning engaging and effective with interactive quizzes and personalized explanations.</p>
+                    <a href="registration.html" class="bg-white text-indigo-600 font-bold py-3 px-8 rounded-full hover:bg-gray-200 transition duration-300 text-lg shadow-lg">Get Started for Free</a>
+                </div>
+            </section>
+
+            <!-- Features Section -->
+            <section id="features" class="py-20 bg-white">
+                <div class="container mx-auto px-6">
+                    <h2 class="text-3xl font-bold text-center mb-12">Why Choose LearnifyAI?</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <!-- Feature Card -->
+                        <div class="text-center p-8 border border-gray-200 rounded-xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                            <div class="text-4xl text-indigo-500 mb-4"><i class="fas fa-lightbulb"></i></div>
+                            <h3 class="text-xl font-bold mb-2">AI-Powered Explanations</h3>
+                            <p class="text-gray-600">Get instant, clear explanations for incorrect answers, helping you understand concepts better.</p>
+                        </div>
+                        <!-- Feature Card -->
+                        <div class="text-center p-8 border border-gray-200 rounded-xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                            <div class="text-4xl text-indigo-500 mb-4"><i class="fas fa-chart-line"></i></div>
+                            <h3 class="text-xl font-bold mb-2">Performance Analytics</h3>
+                            <p class="text-gray-600">Track your progress with detailed analytics and get personalized recommendations.</p>
+                        </div>
+                        <!-- Feature Card -->
+                        <div class="text-center p-8 border border-gray-200 rounded-xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                            <div class="text-4xl text-indigo-500 mb-4"><i class="fas fa-tasks"></i></div>
+                            <h3 class="text-xl font-bold mb-2">Manageable Quizzes</h3>
+                            <p class="text-gray-600">Teachers can easily create, edit, and manage quizzes for their students.</p>
+                        </div>
+                         <!-- Feature Card -->
+                        <div class="text-center p-8 border border-gray-200 rounded-xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                            <div class="text-4xl text-indigo-500 mb-4"><i class="fas fa-users"></i></div>
+                            <h3 class="text-xl font-bold mb-2">Multiple User Roles</h3>
+                            <p class="text-gray-600">Dedicated dashboards for Students, Teachers, and Guardians to support the learning journey.</p>
+                        </div>
+                         <!-- Feature Card -->
+                        <div class="text-center p-8 border border-gray-200 rounded-xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                            <div class="text-4xl text-indigo-500 mb-4"><i class="fas fa-laptop-code"></i></div>
+                            <h3 class="text-xl font-bold mb-2">Interactive & Engaging</h3>
+                            <p class="text-gray-600">A modern and fun interface to keep students motivated and engaged in learning.</p>
+                        </div>
+                         <!-- Feature Card -->
+                        <div class="text-center p-8 border border-gray-200 rounded-xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                            <div class="text-4xl text-indigo-500 mb-4"><i class="fas fa-graduation-cap"></i></div>
+                            <h3 class="text-xl font-bold mb-2">Personalized Learning</h3>
+                            <p class="text-gray-600">AI suggests topics and materials based on your performance, creating a unique learning path.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer id="contact" class="bg-gray-800 text-white">
+            <div class="container mx-auto px-6 py-12">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <div class="md:col-span-2">
+                        <h3 class="text-xl font-bold mb-4">LearnifyAI</h3>
+                        <p class="text-gray-400">Enhancing education with the power of Artificial Intelligence.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
+                        <ul>
+                            <li class="mb-2"><a href="#features" class="text-gray-400 hover:text-white">Features</a></li>
+                            <li class="mb-2"><a href="#" class="text-gray-400 hover:text-white">Pricing</a></li>
+                            <li class="mb-2"><a href="#" class="text-gray-400 hover:text-white">About Us</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4">Follow Us</h3>
+                        <div class="flex space-x-4 text-2xl">
+                            <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-linkedin-in"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-8 border-t border-gray-700 pt-6 text-center text-gray-500">
+                    <p>&copy; 2024 LearnifyAI. All Rights Reserved.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // JavaScript for the mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+    </script>
+</body>
+</html>
