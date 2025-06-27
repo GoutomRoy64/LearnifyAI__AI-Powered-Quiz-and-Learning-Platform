@@ -19,12 +19,5 @@ LearnifyAI is an AI-powered web application designed to enhance learning through
     * **AI Quiz Generator**: Teachers can automatically generate quizzes on any topic.
     * **AI Explanations**: Students receive instant, clear explanations for incorrect answers to deepen understanding.
 
----
 
-## 💻 Tech Stack
 
-* **Frontend**: HTML5, CSS3, JavaScript
-* **Backend & Database**: [Firebase](https://firebase.google.com/)
-    * **Authentication**: For managing user sign-up and login.
-    * **Firestore**: As the NoSQL database for storing user data, quizzes, and results.
-* **AI Integration**: [Google AI Platform (Gemini API)](https://ai.google.dev/) for intelligent features.
