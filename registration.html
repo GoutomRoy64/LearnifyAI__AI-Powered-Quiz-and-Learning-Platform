@@ -4,99 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome - LearnifyAI</title>
-    <!-- Link to the custom CSS file -->
     <link rel="stylesheet" href="registration.css">
-    <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" xintegrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
     <div class="container">
         <div class="auth-wrapper">
-            <!-- Left Side: Welcome Message -->
             <div class="welcome-panel">
-                <a href="index.html" class="logo">
-                    <i class="fas fa-brain"></i> Learnify<span>AI</span>
-                </a>
+                <a href="index.html" class="logo"><i class="fas fa-brain"></i> Learnify<span>AI</span></a>
                 <h1>Unlock Your Learning Potential</h1>
                 <p>Join a community of learners and educators. Get started with AI-powered quizzes and personalized feedback today!</p>
             </div>
-
-            <!-- Right Side: Form Panel -->
             <div class="form-panel">
-
-                <!-- Login Form -->
                 <div id="login-form">
                     <div class="form-header">
                         <h2>Welcome Back!</h2>
                         <p>Don't have an account? <a href="#" onclick="toggleForm('signup', event)">Sign Up</a></p>
                     </div>
-                    <form id="login-form-element">
-                        <div class="input-group">
-                            <label for="login-email">Email Address</label>
-                            <div class="input-field">
-                                <i class="fas fa-envelope"></i>
-                                <input type="email" id="login-email" placeholder="you@example.com" required>
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <label for="login-password">Password</label>
-                            <div class="input-field">
-                                <i class="fas fa-lock"></i>
-                                <input type="password" id="login-password" placeholder="Enter your password" required>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn-submit">Log In</button>
+                    <div id="login-success-message" class="hidden success-message"></div>
+                    <div id="login-error-message" class="hidden error-message"></div>
+                    <form id="login-form-element" novalidate>
+                        <div class="input-group"><label for="login-email">Email Address</label><div class="input-field"><i class="fas fa-envelope"></i><input type="email" id="login-email" placeholder="you@example.com" required></div></div>
+                        <div class="input-group"><label for="login-password">Password</label><div class="input-field"><i class="fas fa-lock"></i><input type="password" id="login-password" placeholder="Enter your password" required></div></div>
+                        <button type="submit" class="btn-submit"><span class="button-text">Log In</span><span class="spinner hidden"></span></button>
                     </form>
                 </div>
-
-                <!-- Registration Form -->
                 <div id="signup-form" class="hidden">
-                     <div class="form-header">
+                    <div class="form-header">
                         <h2>Create an Account</h2>
                         <p>Already have an account? <a href="#" onclick="toggleForm('login', event)">Log In</a></p>
                     </div>
+                    <div id="signup-error-message" class="hidden error-message"></div>
                     <form id="signup-form-element" novalidate>
-                        <div class="input-group">
-                            <label for="fullName">Full Name</label>
-                            <div class="input-field">
-                                <i class="fas fa-user"></i>
-                                <input type="text" id="fullName" placeholder="John Doe" required minlength="2" autocomplete="name">
-                            </div>
-                            <span class="error-message" id="name-error"></span>
-                        </div>
-                        <div class="input-group">
-                            <label for="signup-email">Email Address</label>
-                            <div class="input-field">
-                                <i class="fas fa-envelope"></i>
-                                <input type="email" id="signup-email" placeholder="you@example.com" required autocomplete="email">
-                            </div>
-                            <span class="error-message" id="email-error"></span>
-                        </div>
-                        <div class="input-group">
-                            <label for="signup-password">Password</label>
-                            <div class="input-field">
-                                <i class="fas fa-lock"></i>
-                                <input type="password" id="signup-password" placeholder="Minimum 8 characters" required minlength="8" autocomplete="new-password">
-                                <button type="button" id="toggle-password" tabindex="-1" style="background:none;border:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;"><i class="fas fa-eye"></i></button>
-                            </div>
-                            <span class="error-message" id="password-error"></span>
-                        </div>
-                        <div class="input-group">
-                            <label for="userRole">I am a...</label>
-                            <div class="input-field">
-                                <i class="fas fa-user-graduate"></i>
-                                <select id="userRole">
-                                    <option value="student">Student</option>
-                                    <option value="teacher">Teacher</option>
-                                    <option value="guardian">Guardian</option>
-                                </select>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn-submit" id="signup-btn">Sign Up</button>
-                        <div id="signup-loading" style="display:none;text-align:center;margin-top:10px;">Signing up...</div>
+                        <div class="input-group"><label for="fullName">Full Name</label><div class="input-field"><i class="fas fa-user"></i><input type="text" id="fullName" placeholder="John Doe" required></div></div>
+                        <div class="input-group"><label for="signup-email">Email Address</label><div class="input-field"><i class="fas fa-envelope"></i><input type="email" id="signup-email" placeholder="you@example.com" required></div></div>
+                        <div class="input-group"><label for="signup-password">Password</label><div class="input-field"><i class="fas fa-lock"></i><input type="password" id="signup-password" placeholder="Minimum 8 characters" required></div></div>
+                        <div class="input-group"><label for="userRole">I am a...</label><div class="input-field"><i class="fas fa-user-graduate"></i><select id="userRole"><option value="student">Student</option><option value="teacher">Teacher</option><option value="guardian">Guardian</option></select></div></div>
+                        <button type="submit" class="btn-submit"><span class="button-text">Sign Up</span><span class="spinner hidden"></span></button>
                     </form>
                 </div>
-                
                 <div class="divider"><span>OR</span></div>
                 <button type="button" class="btn-google" id="google-signin-btn"><i class="fab fa-google"></i> Continue with Google</button>
             </div>
@@ -106,196 +52,138 @@
     <script>
         function toggleForm(formToShow, event) {
             if (event) event.preventDefault();
-
-            const loginForm = document.getElementById('login-form');
-            const signupForm = document.getElementById('signup-form');
-
-            if (formToShow === 'signup') {
-                loginForm.classList.add('hidden');
-                signupForm.classList.remove('hidden');
-            } else {
-                loginForm.classList.remove('hidden');
-                signupForm.classList.add('hidden');
-            }
+            document.getElementById('login-form').classList.toggle('hidden', formToShow !== 'login');
+            document.getElementById('signup-form').classList.toggle('hidden', formToShow !== 'signup');
+            document.getElementById('login-success-message').classList.add('hidden');
+            document.getElementById('login-error-message').classList.add('hidden');
+            document.getElementById('signup-error-message').classList.add('hidden');
         }
     </script>
 
-    <!-- Firebase SDK (Software Development Kit) -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
-
-
-    <script src="firebase-keys.js"></script>
-    <script>
-
+    <!-- This script MUST have type="module" -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
+        
+        // Import the configuration from the separate keys file
+        import { firebaseConfig } from "./firebase-keys.js";
 
         // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        // --- AUTHENTICATION LOGIC ---
+        // --- DOM Elements ---
+        const signupFormEl = document.getElementById('signup-form-element');
+        const loginFormEl = document.getElementById('login-form-element');
+        const googleSignInBtn = document.getElementById('google-signin-btn');
+        
+        const loginSuccessEl = document.getElementById('login-success-message');
+        const loginErrorEl = document.getElementById('login-error-message');
+        const signupErrorEl = document.getElementById('signup-error-message');
 
-        const signupForm = document.getElementById('signup-form-element');
-        const loginForm = document.getElementById('login-form-element');
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const formToShow = urlParams.get('form'); // will be 'signup' or 'login'
-        if (formToShow) {
-                toggleForm(formToShow);
+        // --- UI Helpers ---
+        function showMessage(type, form, message) {
+            const el = form === 'login' ? (type === 'success' ? loginSuccessEl : loginErrorEl) : signupErrorEl;
+            el.textContent = message;
+            el.classList.remove('hidden');
         }
 
-        // --- ENHANCED SIGNUP LOGIC ---
-        const signupBtn = document.getElementById('signup-btn');
-        const signupLoading = document.getElementById('signup-loading');
-        const nameError = document.getElementById('name-error');
-        const emailError = document.getElementById('email-error');
-        const passwordError = document.getElementById('password-error');
-        const signupPassword = document.getElementById('signup-password');
-        const togglePassword = document.getElementById('toggle-password');
-
-        // Password visibility toggle
-        if (togglePassword) {
-            togglePassword.addEventListener('click', function() {
-                if (signupPassword.type === 'password') {
-                    signupPassword.type = 'text';
-                    togglePassword.innerHTML = '<i class="fas fa-eye-slash"></i>';
-                } else {
-                    signupPassword.type = 'password';
-                    togglePassword.innerHTML = '<i class="fas fa-eye"></i>';
-                }
-            });
+        function setLoading(button, isLoading) {
+            if (!button) return;
+            const buttonText = button.querySelector('.button-text');
+            const spinner = button.querySelector('.spinner');
+            button.disabled = isLoading;
+            if(buttonText) buttonText.classList.toggle('hidden', isLoading);
+            if(spinner) spinner.classList.toggle('hidden', !isLoading);
         }
 
-        function validateEmail(email) {
-            // Simple email regex
-            return /^\S+@\S+\.\S+$/.test(email);
-        }
-
-        function validatePassword(password) {
-            // At least 8 chars, 1 letter, 1 number
-            return /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+\-=]{8,}$/.test(password);
-        }
-
-        function clearSignupErrors() {
-            nameError.textContent = '';
-            emailError.textContent = '';
-            passwordError.textContent = '';
-        }
-
-        signupForm.addEventListener('submit', async e => {
+        // --- Sign Up Handler ---
+        signupFormEl.addEventListener('submit', async (e) => {
             e.preventDefault();
-            clearSignupErrors();
-            signupBtn.disabled = true;
-            signupLoading.style.display = 'block';
+            const signupButton = signupFormEl.querySelector('.btn-submit');
+            setLoading(signupButton, true);
+            
+            const name = signupFormEl['fullName'].value;
+            const email = signupFormEl['signup-email'].value;
+            const password = signupFormEl['signup-password'].value;
+            const role = signupFormEl['userRole'].value;
 
-            const fullName = signupForm['fullName'].value.trim();
-            const email = signupForm['signup-email'].value.trim();
-            const password = signupForm['signup-password'].value;
-            const userRole = signupForm['userRole'].value;
-            let valid = true;
-
-            // Name validation
-            if (fullName.length < 2) {
-                nameError.textContent = 'Please enter your full name.';
-                signupForm['fullName'].focus();
-                valid = false;
-            }
-            // Email validation
-            if (!validateEmail(email)) {
-                emailError.textContent = 'Please enter a valid email address.';
-                if (valid) signupForm['signup-email'].focus();
-                valid = false;
-            }
-            // Password validation
-            if (!validatePassword(password)) {
-                passwordError.textContent = 'Password must be at least 8 characters and contain a letter and a number.';
-                if (valid) signupForm['signup-password'].focus();
-                valid = false;
-            }
-            if (!valid) {
-                signupBtn.disabled = false;
-                signupLoading.style.display = 'none';
-                return;
-            }
-
-            // Firebase registration
             try {
-                // 1. Create user in Firebase Authentication
-                const cred = await auth.createUserWithEmailAndPassword(email, password);
-                // 2. Save additional user data to Firestore
-                await db.collection('users').doc(cred.user.uid).set({
-                    name: fullName,
-                    role: userRole,
-                    email: email
-                });
-                alert('Registration successful! Redirecting to your dashboard...');
-                redirectToDashboard(userRole);
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                await setDoc(doc(db, "users", userCredential.user.uid), { name, email, role });
+                await signOut(auth); // Sign out to prevent auto-login
+
+                showMessage('success', 'login', "Account created! Please log in to continue.");
+                signupFormEl.reset();
+                toggleForm('login');
+                document.getElementById('login-email').value = email;
             } catch (err) {
-                // Friendly error messages
-                if (err.code === 'auth/email-already-in-use') {
-                    emailError.textContent = 'This email is already registered. Try logging in.';
-                    signupForm['signup-email'].focus();
-                } else if (err.code === 'auth/weak-password') {
-                    passwordError.textContent = 'Password is too weak. Please use a stronger password.';
-                    signupForm['signup-password'].focus();
-                } else if (err.code === 'auth/invalid-email') {
-                    emailError.textContent = 'Invalid email address.';
-                    signupForm['signup-email'].focus();
-                } else {
-                    alert('Error: ' + err.message);
-                }
+                showMessage('error', 'signup', err.message);
             } finally {
-                signupBtn.disabled = false;
-                signupLoading.style.display = 'none';
+                setLoading(signupButton, false);
             }
         });
 
         // --- Login Handler ---
-        loginForm.addEventListener('submit', e => {
+        loginFormEl.addEventListener('submit', async (e) => {
             e.preventDefault();
+            const loginButton = loginFormEl.querySelector('.btn-submit');
+            setLoading(loginButton, true);
             
-            const email = loginForm['login-email'].value;
-            const password = loginForm['login-password'].value;
+            const email = loginFormEl['login-email'].value;
+            const password = loginFormEl['login-password'].value;
 
-            // 1. Sign in the user with Firebase Authentication
-            auth.signInWithEmailAndPassword(email, password)
-                .then(cred => {
-                    // 2. Get the user's role from Firestore
-                    return db.collection('users').doc(cred.user.uid).get();
-                })
-                .then(doc => {
-                    if (doc.exists) {
-                        const userRole = doc.data().role;
-                        alert('Login successful! Redirecting...');
-                        // 3. Redirect to the correct dashboard
-                        redirectToDashboard(userRole);
-                    } else {
-                        // This case is unlikely if registration is done correctly, but good to have
-                        throw new Error('No user data found in the database!');
-                    }
-                })
-                .catch(err => {
-                    console.error(err);
-                    alert('Error: ' + err.message);
-                });
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
+                if (userDoc.exists()) {
+                    redirectToDashboard(userDoc.data().role);
+                } else {
+                    throw new Error("User profile not found.");
+                }
+            } catch (err) {
+                showMessage('error', 'login', err.message);
+                setLoading(loginButton, false);
+            }
         });
 
-        // --- Helper function for redirection ---
-        function redirectToDashboard(role) {
-            if (role === 'student') {
-                window.location.href = 'Dashboard/student_dashboard.html';
-            } else if (role === 'teacher') {
-                window.location.href = 'Dashboard/teacher_dashboard.html';
-            } else if (role === 'guardian') {
-                window.location.href = 'Dashboard/guardian_dashboard.html';
-            } else {
-                // Fallback to a generic page or the home page if role is not set
-                window.location.href = 'index.html';
+        // --- Google Sign In Handler ---
+        googleSignInBtn.addEventListener('click', async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                const userRef = doc(db, "users", user.uid);
+                const userDoc = await getDoc(userRef);
+                let userRole = 'student';
+
+                if (!userDoc.exists()) {
+                    await setDoc(userRef, { name: user.displayName, email: user.email, role: 'student' });
+                } else {
+                    userRole = userDoc.data().role;
+                }
+                redirectToDashboard(userRole);
+            } catch (err) {
+                showMessage('error', 'login', err.message);
             }
+        });
+
+        function redirectToDashboard(role) {
+            const dashboardMap = {
+                student: 'student_dashboard.html',
+                teacher: 'teacher_dashboard.html',
+                guardian: 'guardian_dashboard.html'
+            };
+            window.location.href = dashboardMap[role] || 'index.html';
         }
 
+        // Check URL params on initial load
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('form') === 'signup') {
+            toggleForm('signup');
+        }
     </script>
 </body>
 </html>
