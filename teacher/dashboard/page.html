@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard - LearnifyAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .skill-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+        .skill-beginner { background-color: #dcfce7; color: #166534; }
+        .skill-intermediate { background-color: #fef9c3; color: #854d0e; }
+        .skill-advanced { background-color: #fee2e2; color: #991b1b; }
+        .actions-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-8">
+                    <a href="../../index.html" class="flex-shrink-0 text-2xl font-bold text-gray-800">
+                        Learnify<span class="text-indigo-600">AI</span>
+                    </a>
+                    <div class="hidden md:flex items-center space-x-4">
+                        <a href="#" class="text-indigo-600 font-semibold border-b-2 border-indigo-600 px-3 py-2 text-sm font-medium">Dashboard</a>
+                        <a href="../classrooms/page.html" class="text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium">Classrooms</a>
+                    </div>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-4 flex items-center md:ml-6 space-x-4">
+                         <span id="welcome-message" class="text-gray-700 font-semibold">Welcome!</span>
+                         <button id="logout-btn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition duration-300">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-10 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center mb-6 px-4 md:px-0">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-800">My Quizzes</h2>
+                <p class="text-gray-500 mt-1">Manage, edit, and view results for your quizzes.</p>
+                <p class="text-xs text-gray-400 mt-2" id="user-id-display"></p>
+            </div>
+            <a href="../quiz/page.html" class="bg-indigo-600 text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-indigo-700 flex items-center space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                <span>Create Quiz</span>
+            </a>
+        </div>
+        
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Skill Level</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Questions</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Attempts</th>
+                            <th class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="quizzes-table-body" class="bg-white divide-y divide-gray-200">
+                        <tr><td colspan="6" class="text-center p-4 text-gray-500">Loading your quizzes...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { firebaseConfig } from '../../firebase-keys.js';
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, query, where, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+
+        const welcomeMessage = document.getElementById('welcome-message');
+        const userIdDisplay = document.getElementById('user-id-display');
+        const quizzesTableBody = document.getElementById('quizzes-table-body');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        const getSkillBadgeClass = (skill) => {
+            if (!skill) return '';
+            const lowerSkill = skill.toLowerCase();
+            if (lowerSkill === 'beginner') return 'skill-beginner';
+            if (lowerSkill === 'intermediate') return 'skill-intermediate';
+            if (lowerSkill === 'advanced') return 'skill-advanced';
+            return '';
+        };
+
+        const handleDeleteQuiz = async (quizId, quizTitle) => {
+            if (confirm(`Are you sure you want to delete the quiz "${quizTitle}"? This action cannot be undone.`)) {
+                try {
+                    await deleteDoc(doc(db, "quizzes", quizId));
+                    // Note: This doesn't delete the subcollection of questions. For a full delete, a Cloud Function is needed.
+                    alert("Quiz deleted successfully.");
+                    loadQuizzes(currentUser.uid);
+                } catch (error) {
+                    console.error("Error deleting quiz: ", error);
+                    alert("Failed to delete quiz.");
+                }
+            }
+        };
+
+        const loadQuizzes = async (teacherId) => {
+            try {
+                const q = query(collection(db, "quizzes"), where("teacherId", "==", teacherId));
+                const querySnapshot = await getDocs(q);
+                
+                quizzesTableBody.innerHTML = '';
+
+                if (querySnapshot.empty) {
+                    quizzesTableBody.innerHTML = '<tr><td colspan="6" class="text-center p-4 text-gray-500">You haven\'t created any quizzes yet.</td></tr>';
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const quiz = doc.data();
+                    const quizId = doc.id;
+                    const skillBadgeClass = getSkillBadgeClass(quiz.skillLevel);
+
+                    const tableRow = document.createElement('tr');
+                    tableRow.className = 'hover:bg-gray-50';
+                    tableRow.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${quiz.title || 'N/A'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${quiz.subject || 'N/A'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <span class="skill-badge ${skillBadgeClass}">${quiz.skillLevel || 'N/A'}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${quiz.questionsCount || 0}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${quiz.attempts || 0}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium relative">
+                            <button class="actions-toggle-btn text-gray-500 hover:text-gray-700">...</button>
+                            <div class="actions-menu w-40 mt-2 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                <div class="py-1">
+                                    <a href="../classrooms/quiz/edit/page.html?id=${quizId}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit</a>
+                                    <a href="../classrooms/quiz/results/page.html?quizId=${quizId}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">View Results</a>
+                                    <button class="delete-btn block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Delete</button>
+                                </div>
+                            </div>
+                        </td>
+                    `;
+                    quizzesTableBody.appendChild(tableRow);
+
+                    tableRow.querySelector('.delete-btn').addEventListener('click', () => handleDeleteQuiz(quizId, quiz.title));
+                });
+
+                document.querySelectorAll('.actions-toggle-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const menu = e.currentTarget.nextElementSibling;
+                        document.querySelectorAll('.actions-menu').forEach(m => {
+                            if (m !== menu) m.style.display = 'none';
+                        });
+                        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+                    });
+                });
+
+            } catch (error) {
+                console.error("Error loading quizzes:", error);
+                quizzesTableBody.innerHTML = '<tr><td colspan="6" class="text-center p-4 text-red-500">Could not load your quizzes.</td></tr>';
+            }
+        };
+
+        window.addEventListener('click', () => {
+             document.querySelectorAll('.actions-menu').forEach(m => m.style.display = 'none');
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                const userDocRef = doc(db, "users", user.uid);
+                const userDoc = await getDoc(userDocRef);
+                
+                if (userDoc.exists() && userDoc.data().role === 'teacher') {
+                    const userData = userDoc.data();
+                    welcomeMessage.textContent = `Welcome, ${userData.name}!`;
+                    userIdDisplay.textContent = `Your ID: ${userData.userId}`;
+                    loadQuizzes(user.uid);
+                } else {
+                    const baseUrl = window.location.origin;
+                    window.location.href = userDoc.exists() ? `${baseUrl}/student/dashboard/page.html` : `${baseUrl}/login/page.html`;
+                }
+            } else {
+                const baseUrl = window.location.origin;
+                window.location.href = `${baseUrl}/login/page.html`;
+            }
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            signOut(auth).then(() => {
+                const baseUrl = window.location.origin;
+                window.location.href = `${baseUrl}/login/page.html`;
+            }).catch((error) => {
+                console.error('Logout Error:', error);
+            });
+        });
+
+    </script>
+</body>
+</html>

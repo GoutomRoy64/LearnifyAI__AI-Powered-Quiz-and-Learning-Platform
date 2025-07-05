@@ -1,1 +1,10 @@
+# Firebase and AI Keys
 firebase-keys.js
+ai/page.js
+
+# Firebase Emulator Data
+.firebase/
+
+# Node.js dependencies
+/node_modules
+

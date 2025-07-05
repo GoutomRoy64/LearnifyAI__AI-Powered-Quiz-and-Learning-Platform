@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Take Quiz - LearnifyAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+        }
+        .option-label {
+            display: block;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .option-label:hover {
+            background-color: #f3f4f6;
+        }
+        input[type="radio"]:checked + .option-label {
+            border-color: #4f46e5;
+            background-color: #eef2ff;
+            box-shadow: 0 0 0 2px #4f46e5;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Main Content -->
+    <main class="max-w-3xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div class="mb-6">
+            <a href="../dashboard/page.html" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800">&larr; Back to Dashboard</a>
+        </div>
+        <div id="quiz-container" class="bg-white p-8 rounded-xl shadow-lg border border-gray-200">
+            <!-- Header: Title and Timer -->
+            <div class="flex justify-between items-center border-b pb-4 mb-6">
+                <div>
+                    <h1 id="quiz-title" class="text-2xl font-bold text-gray-900">Loading Quiz...</h1>
+                    <p id="question-counter" class="text-sm text-gray-500 mt-1"></p>
+                </div>
+                <div id="timer-container" class="text-lg font-semibold text-indigo-600">
+                    <span id="timer">--:--</span>
+                </div>
+            </div>
+
+            <!-- Question Area -->
+            <div id="question-area" class="hidden">
+                <h2 id="question-text" class="text-xl font-semibold text-gray-800 mb-6"></h2>
+                <div id="options-container" class="space-y-4"></div>
+            </div>
+            
+             <!-- Loading/Error Message -->
+            <div id="message-area" class="text-center p-8">
+                <p id="message-text" class="text-gray-600">Please wait while we load the quiz questions.</p>
+            </div>
+
+            <!-- Navigation -->
+            <div id="navigation-area" class="hidden mt-8 pt-6 border-t flex justify-between items-center">
+                <button id="prev-btn" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-semibold hover:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
+                <button id="next-btn" class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition">Next</button>
+                <button id="submit-btn" class="hidden bg-green-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-600 transition">Submit Quiz</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { firebaseConfig } from '../../firebase-keys.js';
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, getDocs, addDoc, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let quizId = null;
+        let questions = [];
+        let userAnswers = [];
+        let currentQuestionIndex = 0;
+        let quizTimerInterval = null;
+
+        const quizTitleEl = document.getElementById('quiz-title');
+        const questionCounterEl = document.getElementById('question-counter');
+        const questionTextEl = document.getElementById('question-text');
+        const optionsContainerEl = document.getElementById('options-container');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        const questionArea = document.getElementById('question-area');
+        const messageArea = document.getElementById('message-area');
+        const messageText = document.getElementById('message-text');
+        const timerEl = document.getElementById('timer');
+        const navigationArea = document.getElementById('navigation-area');
+
+        const renderQuestion = () => {
+            if (questions.length === 0) {
+                questionArea.classList.add('hidden');
+                navigationArea.classList.add('hidden');
+                messageArea.classList.remove('hidden');
+                messageText.textContent = "This quiz has no questions.";
+                return;
+            }
+            
+            questionArea.classList.remove('hidden');
+            navigationArea.classList.remove('hidden');
+            messageArea.classList.add('hidden');
+
+            const question = questions[currentQuestionIndex];
+            questionTextEl.textContent = question.text;
+            questionCounterEl.textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
+            optionsContainerEl.innerHTML = '';
+
+            question.options.forEach((option, index) => {
+                const optionId = `q${currentQuestionIndex}-option${index}`;
+                optionsContainerEl.insertAdjacentHTML('beforeend', `
+                    <div>
+                        <input type="radio" name="option" value="${index}" id="${optionId}" class="sr-only">
+                        <label for="${optionId}" class="option-label">${option}</label>
+                    </div>`);
+            });
+
+            if (userAnswers[currentQuestionIndex] !== undefined) {
+                const selectedRadio = optionsContainerEl.querySelector(`input[value="${userAnswers[currentQuestionIndex]}"]`);
+                if (selectedRadio) selectedRadio.checked = true;
+            }
+            
+            updateNavigation();
+        };
+
+        const updateNavigation = () => {
+            prevBtn.disabled = currentQuestionIndex === 0;
+            nextBtn.classList.toggle('hidden', currentQuestionIndex === questions.length - 1);
+            submitBtn.classList.toggle('hidden', currentQuestionIndex !== questions.length - 1);
+        };
+        
+        const saveAnswer = () => {
+            const selectedOption = optionsContainerEl.querySelector('input[name="option"]:checked');
+            if (selectedOption) userAnswers[currentQuestionIndex] = parseInt(selectedOption.value);
+        };
+
+        const handleSubmit = async () => {
+            saveAnswer();
+            clearInterval(quizTimerInterval);
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Submitting...";
+
+            let correctCount = 0;
+            questions.forEach((q, i) => {
+                if(q.correctAnswer === userAnswers[i]) {
+                    correctCount++;
+                }
+            });
+            const score = Math.round((correctCount / questions.length) * 100);
+
+            try {
+                const attemptDocRef = await addDoc(collection(db, "attempts"), {
+                    userId: currentUser.uid,
+                    quizId: quizId,
+                    score: score,
+                    userAnswers: userAnswers,
+                    completedAt: serverTimestamp()
+                });
+
+                const quizRef = doc(db, "quizzes", quizId);
+                await runTransaction(db, async (transaction) => {
+                    const quizDoc = await transaction.get(quizRef);
+                    if (!quizDoc.exists()) throw "Quiz document does not exist!";
+                    const newAttempts = (quizDoc.data().attempts || 0) + 1;
+                    transaction.update(quizRef, { attempts: newAttempts });
+                });
+
+                window.location.href = `./results/page.html?attemptId=${attemptDocRef.id}`;
+
+            } catch (error) {
+                console.error("Error submitting quiz:", error);
+                alert("Could not submit your quiz. Please try again.");
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Submit Quiz";
+            }
+        };
+
+        nextBtn.addEventListener('click', () => {
+            saveAnswer();
+            currentQuestionIndex++;
+            renderQuestion();
+        });
+
+        prevBtn.addEventListener('click', () => {
+            saveAnswer();
+            currentQuestionIndex--;
+            renderQuestion();
+        });
+
+        submitBtn.addEventListener('click', handleSubmit);
+
+        const startTimer = (durationInMinutes) => {
+            if (durationInMinutes <= 0) {
+                timerEl.textContent = "No time limit";
+                return;
+            }
+            let timeRemaining = durationInMinutes * 60;
+            quizTimerInterval = setInterval(() => {
+                const minutes = Math.floor(timeRemaining / 60);
+                const seconds = timeRemaining % 60;
+                timerEl.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                if (--timeRemaining < 0) {
+                    clearInterval(quizTimerInterval);
+                    handleSubmit();
+                }
+            }, 1000);
+        };
+
+        const loadQuiz = async (id) => {
+            quizId = id;
+            try {
+                const quizRef = doc(db, "quizzes", quizId);
+                const quizSnap = await getDoc(quizRef);
+
+                if (!quizSnap.exists()) throw new Error("Quiz not found");
+                
+                const quizData = quizSnap.data();
+                quizTitleEl.textContent = quizData.title;
+                startTimer(quizData.timer || 0);
+
+                const questionsRef = collection(db, "quizzes", quizId, "questions");
+                const questionsSnap = await getDocs(questionsRef);
+                
+                questions = questionsSnap.docs.map(d => d.data());
+                userAnswers = new Array(questions.length);
+
+                renderQuestion();
+
+            } catch (error) {
+                console.error("Error loading quiz:", error);
+                quizTitleEl.textContent = "Error";
+                messageText.textContent = "Could not load the quiz. Please try again later.";
+            }
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                const urlParams = new URLSearchParams(window.location.search);
+                const id = urlParams.get('id');
+                if (id) {
+                    loadQuiz(id);
+                } else {
+                    quizTitleEl.textContent = "No Quiz Selected";
+                    messageText.textContent = "Please go back to the dashboard and select a quiz.";
+                }
+            } else {
+                window.location.href = `../../login/page.html`;
+            }
+        });
+    </script>
+</body>
+</html>

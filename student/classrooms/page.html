@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classrooms - LearnifyAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+        }
+        .tab-active {
+            border-bottom-width: 2px;
+            border-color: #4f46e5; /* indigo-600 */
+            color: #4f46e5;
+        }
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+        .status-approved { background-color: #dcfce7; color: #166534; }
+        .status-pending { background-color: #fef9c3; color: #854d0e; }
+        .status-rejected { background-color: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-8">
+                    <a href="../../index.html" class="text-2xl font-bold text-gray-800">Learnify<span class="text-indigo-600">AI</span></a>
+                    <div class="hidden md:flex items-center space-x-4">
+                         <a href="../dashboard/page.html" class="text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium">Dashboard</a>
+                         <a href="#" class="text-indigo-600 font-semibold border-b-2 border-indigo-600 px-3 py-2 text-sm">Classrooms</a>
+                    </div>
+                </div>
+                <button id="logout-btn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition text-sm">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-10 sm:px-6 lg:px-8">
+        <!-- Welcome Header -->
+        <div class="px-4 md:px-0">
+            <h1 id="welcome-message" class="text-3xl font-bold text-gray-800">Welcome!</h1>
+            <p class="text-gray-500 mt-1">Ready to test your knowledge or check on your classrooms?</p>
+            <p class="text-xs text-gray-400 mt-2" id="user-id-display"></p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="mt-8 border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                <a href="../dashboard/page.html" class="text-gray-500 hover:text-gray-700 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                    Quizzes
+                </a>
+                <a href="#" class="tab-active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" aria-current="page">
+                    Classrooms
+                </a>
+            </nav>
+        </div>
+
+        <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- My Classrooms Section -->
+            <div class="space-y-6">
+                <h2 class="text-xl font-bold text-gray-800">My Classrooms</h2>
+                <div id="my-classrooms-list" class="space-y-4">
+                    <p class="text-gray-500 bg-white p-6 rounded-lg shadow-sm border">Loading...</p>
+                </div>
+            </div>
+
+            <!-- Available Classrooms Section -->
+            <div class="space-y-6">
+                <h2 class="text-xl font-bold text-gray-800">Available Classrooms</h2>
+                <p class="text-sm text-gray-500">Browse and request to join classrooms.</p>
+                <div id="available-classrooms-list" class="space-y-4">
+                    <p class="text-gray-500">Loading available classrooms...</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- My Join Requests Section -->
+        <div class="mt-12">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">My Join Requests</h2>
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                     <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Classroom</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="join-requests-body" class="bg-white divide-y divide-gray-200">
+                        <!-- Request rows go here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { firebaseConfig } from '../../firebase-keys.js';
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, addDoc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+
+        const welcomeMessageEl = document.getElementById('welcome-message');
+        const userIdDisplayEl = document.getElementById('user-id-display');
+        const myClassroomsListEl = document.getElementById('my-classrooms-list');
+        const availableClassroomsListEl = document.getElementById('available-classrooms-list');
+        const joinRequestsBodyEl = document.getElementById('join-requests-body');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        const renderMyClassrooms = (classrooms) => {
+            myClassroomsListEl.innerHTML = '';
+            if (classrooms.length === 0) {
+                 myClassroomsListEl.innerHTML = '<div class="bg-white p-6 rounded-lg shadow-sm border"><p class="text-gray-500">You are not a member of any classrooms yet.</p></div>';
+                return;
+            }
+            classrooms.forEach(c => {
+                const card = `
+                    <div class="bg-white p-6 rounded-lg shadow-sm border">
+                        <h3 class="font-bold text-lg text-gray-900">${c.name}</h3>
+                        <p class="text-sm text-gray-600 mt-1">${c.description} - Taught by ${c.teacherName}</p>
+                        <p class="text-sm text-gray-500 mt-2">${c.studentCount || 0} student(s)</p>
+                        <a href="./view/page.html?id=${c.id}" class="block mt-4 w-full text-center bg-indigo-600 text-white py-2 rounded-md font-semibold text-sm hover:bg-indigo-700">View Classroom</a>
+                    </div>
+                `;
+                myClassroomsListEl.insertAdjacentHTML('beforeend', card);
+            });
+        };
+        
+        const renderAvailableClassrooms = (classrooms) => {
+            availableClassroomsListEl.innerHTML = '';
+             if (classrooms.length === 0) {
+                availableClassroomsListEl.innerHTML = '<p class="text-gray-500">There are no new classrooms available to join.</p>';
+                return;
+            }
+            classrooms.forEach(c => {
+                const card = `
+                    <div class="bg-white p-4 rounded-lg shadow-sm border flex justify-between items-center">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">${c.name}</h4>
+                            <p class="text-sm text-gray-500">${c.description} - Taught by ${c.teacherName}</p>
+                        </div>
+                        <button data-id="${c.id}" data-teacher-id="${c.teacherId}" class="request-join-btn bg-indigo-100 text-indigo-700 px-4 py-2 rounded-md font-semibold text-sm hover:bg-indigo-200">Request to Join</button>
+                    </div>
+                `;
+                availableClassroomsListEl.insertAdjacentHTML('beforeend', card);
+            });
+
+            document.querySelectorAll('.request-join-btn').forEach(button => {
+                button.addEventListener('click', handleRequestJoin);
+            });
+        };
+        
+        const renderJoinRequests = (requests) => {
+            joinRequestsBodyEl.innerHTML = '';
+            if (requests.length === 0) {
+                joinRequestsBodyEl.innerHTML = '<tr><td colspan="3" class="text-center p-4 text-gray-500">You have no pending join requests.</td></tr>';
+                return;
+            }
+            requests.forEach(r => {
+                const date = r.requestedAt?.toDate().toLocaleDateString() || 'N/A';
+                const statusClass = r.status === 'approved' ? 'status-approved' : r.status === 'rejected' ? 'status-rejected' : 'status-pending';
+                const row = `
+                    <tr>
+                        <td class="px-6 py-4 text-sm font-medium text-gray-800">${r.classroomName || '...'}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600">${date}</td>
+                        <td class="px-6 py-4 text-sm"><span class="status-badge ${statusClass}">${r.status}</span></td>
+                    </tr>
+                `;
+                joinRequestsBodyEl.insertAdjacentHTML('beforeend', row);
+            });
+        };
+
+        const handleRequestJoin = async (event) => {
+            const button = event.currentTarget;
+            const classroomId = button.dataset.id;
+            const teacherId = button.dataset.teacherId;
+
+            if (!currentUser || !classroomId) return;
+            button.disabled = true;
+            button.textContent = 'Requested';
+            button.classList.remove('hover:bg-indigo-200');
+            button.classList.add('cursor-not-allowed');
+
+            await addDoc(collection(db, "joinRequests"), {
+                studentId: currentUser.uid,
+                studentName: currentUser.displayName || "A Student",
+                teacherId: teacherId,
+                classroomId: classroomId,
+                status: 'pending',
+                requestedAt: serverTimestamp()
+            });
+
+            loadAllData(currentUser);
+        };
+
+        const loadAllData = async (user) => {
+            try {
+                const classroomsSnapshot = await getDocs(collection(db, "classrooms"));
+                const allClassroomsData = classroomsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                const teacherIds = [...new Set(allClassroomsData.map(c => c.teacherId).filter(id => id))];
+
+                const teacherPromises = teacherIds.map(id => getDoc(doc(db, "users", id)));
+                const teacherDocs = await Promise.all(teacherPromises);
+                const teacherMap = new Map();
+                teacherDocs.forEach(doc => {
+                    if (doc.exists()) {
+                        teacherMap.set(doc.id, doc.data().name);
+                    }
+                });
+
+                const allClassrooms = allClassroomsData.map(c => ({
+                    ...c,
+                    teacherName: teacherMap.get(c.teacherId) || "Unknown Teacher"
+                }));
+
+                const requestsQuery = query(collection(db, "joinRequests"), where("studentId", "==", user.uid));
+                const requestsSnapshot = await getDocs(requestsQuery);
+                const joinRequests = requestsSnapshot.docs.map(requestDoc => {
+                    const requestData = { id: requestDoc.id, ...requestDoc.data() };
+                    const classroom = allClassrooms.find(c => c.id === requestData.classroomId);
+                    return { ...requestData, classroomName: classroom ? classroom.name : "Unknown" };
+                });
+                
+                renderJoinRequests(joinRequests);
+                
+                const myClassroomIds = joinRequests.filter(r => r.status === 'approved').map(r => r.classroomId);
+                const myClassrooms = allClassrooms.filter(c => myClassroomIds.includes(c.id));
+                renderMyClassrooms(myClassrooms);
+                
+                const requestedClassroomIds = joinRequests.map(r => r.classroomId);
+                const availableClassrooms = allClassrooms.filter(c => !requestedClassroomIds.includes(c.id));
+                renderAvailableClassrooms(availableClassrooms);
+
+            } catch (error) {
+                console.error("Failed to load classroom data:", error);
+                myClassroomsListEl.innerHTML = '<div class="bg-white p-6 rounded-lg shadow-sm border"><p class="text-red-500">Could not load classrooms. Please try again later.</p></div>';
+                availableClassroomsListEl.innerHTML = '<p class="text-red-500">Could not load available classrooms.</p>';
+                joinRequestsBodyEl.innerHTML = '<tr><td colspan="3" class="text-center p-4 text-red-500">Could not load join requests.</td></tr>';
+            }
+        };
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    currentUser.displayName = userData.name;
+                    welcomeMessageEl.textContent = `Welcome, ${userData.name}!`;
+                    userIdDisplayEl.textContent = `Your ID: user-${userData.userId}`;
+                }
+                loadAllData(user);
+            } else {
+                window.location.href = '../../login/page.html';
+            }
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            signOut(auth).then(() => window.location.href = '../../login/page.html');
+        });
+
+    </script>
+</body>
+</html>

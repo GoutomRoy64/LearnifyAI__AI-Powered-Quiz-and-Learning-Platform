@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Classrooms - LearnifyAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+        }
+        .modal {
+            transition: opacity 0.25s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-8">
+                    <a href="../../index.html" class="text-2xl font-bold text-gray-800">Learnify<span class="text-indigo-600">AI</span></a>
+                    <div class="hidden md:flex items-center space-x-4">
+                         <a href="../dashboard/page.html" class="text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium">Dashboard</a>
+                         <a href="#" class="text-indigo-600 font-semibold border-b-2 border-indigo-600 px-3 py-2 text-sm">Classrooms</a>
+                    </div>
+                </div>
+                <button id="logout-btn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition text-sm">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-10 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8 px-4 md:px-0">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-900">My Classrooms</h1>
+                <p class="mt-2 text-gray-600">Manage your classrooms and student requests.</p>
+            </div>
+            <button id="create-classroom-btn" class="bg-indigo-600 text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-indigo-700 transition duration-300 flex items-center space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                </svg>
+                <span>Create Classroom</span>
+            </button>
+        </div>
+
+        <!-- Classrooms Grid -->
+        <div id="classrooms-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Classroom cards will be dynamically inserted here -->
+            <p id="no-classrooms-message" class="text-gray-500 col-span-full">Loading classrooms...</p>
+        </div>
+    </main>
+
+    <!-- Create Classroom Modal -->
+    <div id="create-classroom-modal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden items-center justify-center z-50">
+        <div class="relative mx-auto p-8 border w-full max-w-lg shadow-lg rounded-md bg-white">
+            <h3 class="text-2xl font-bold text-gray-900">Create New Classroom</h3>
+            <form id="create-classroom-form" class="mt-6 space-y-4">
+                <div>
+                    <label for="classroom-name" class="block text-sm font-medium text-gray-700">Classroom Name</label>
+                    <input type="text" id="classroom-name" placeholder="e.g., Python101" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
+                </div>
+                <div>
+                    <label for="classroom-description" class="block text-sm font-medium text-gray-700">Description</label>
+                    <textarea id="classroom-description" rows="3" placeholder="e.g., An introductory course to Python programming." class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"></textarea>
+                </div>
+                <div class="mt-6 flex justify-end space-x-4">
+                    <button type="button" id="modal-cancel-btn" class="px-6 py-2 bg-gray-200 text-gray-800 font-semibold rounded-md hover:bg-gray-300">Cancel</button>
+                    <button type="submit" class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <script type="module">
+        import { firebaseConfig } from '../../firebase-keys.js';
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, addDoc, updateDoc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+
+        const classroomsGrid = document.getElementById('classrooms-grid');
+        const noClassroomsMessage = document.getElementById('no-classrooms-message');
+        const createClassroomBtn = document.getElementById('create-classroom-btn');
+        const modal = document.getElementById('create-classroom-modal');
+        const modalCancelBtn = document.getElementById('modal-cancel-btn');
+        const createClassroomForm = document.getElementById('create-classroom-form');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        const openModal = () => modal.classList.remove('hidden');
+        const closeModal = () => modal.classList.add('hidden');
+
+        createClassroomBtn.addEventListener('click', openModal);
+        modalCancelBtn.addEventListener('click', closeModal);
+
+        const handleRequestAction = async (event) => {
+            const button = event.currentTarget;
+            const requestId = button.dataset.requestId;
+            const action = button.dataset.action;
+
+            if (!requestId || !action) return;
+
+            button.disabled = true;
+            button.parentElement.innerHTML = `<span class="text-xs text-gray-500">${action}...</span>`;
+
+            try {
+                const requestRef = doc(db, "joinRequests", requestId);
+                await updateDoc(requestRef, { status: action });
+                loadClassrooms(currentUser.uid); // Refresh the view
+            } catch (error) {
+                console.error("Error updating join request:", error);
+                alert("Failed to update the request.");
+                // Optionally restore the button on error
+            }
+        };
+
+        const renderClassrooms = (classrooms) => {
+            classroomsGrid.innerHTML = '';
+            if (classrooms.length === 0) {
+                noClassroomsMessage.classList.remove('hidden');
+                noClassroomsMessage.textContent = "You haven't created any classrooms yet.";
+                classroomsGrid.appendChild(noClassroomsMessage);
+                return;
+            }
+            
+            noClassroomsMessage.classList.add('hidden');
+            classrooms.forEach(c => {
+                let pendingRequestsHtml = '<p class="text-xs text-gray-400 mt-1">No pending requests.</p>';
+                if (c.pendingRequests && c.pendingRequests.length > 0) {
+                    pendingRequestsHtml = c.pendingRequests.map(req => `
+                        <div class="flex items-center justify-between text-sm mt-2">
+                            <span class="text-gray-600">${req.studentName}</span>
+                            <div class="flex space-x-2">
+                                <button data-request-id="${req.id}" data-action="approved" class="approve-btn text-xs font-semibold text-green-700 bg-green-100 hover:bg-green-200 px-2 py-1 rounded-md">Approve</button>
+                                <button data-request-id="${req.id}" data-action="rejected" class="deny-btn text-xs font-semibold text-red-700 bg-red-100 hover:bg-red-200 px-2 py-1 rounded-md">Deny</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                const card = `
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-900">${c.name}</h3>
+                            <p class="text-gray-600 mt-1">${c.description}</p>
+                            <div class="mt-4 space-y-2 text-sm text-gray-700">
+                                <p class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0110 13a5 5 0 01-1.5-4.33A6.97 6.97 0 007 16c0 .34.024.673.07 1h5.86z" /></svg>
+                                    ${c.studentCount || 0} student(s)
+                                </p>
+                                <div class="join-requests-section">
+                                    <p class="flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2.94 6.412A2 2 0 014.382 4h11.236a2 2 0 011.442 2.412l-2.026 4.052A2 2 0 0113.596 12H6.404a2 2 0 01-1.442-1.536L2.94 6.412zM2 6a4 4 0 014-4h12a4 4 0 014 4v8a4 4 0 01-4 4H6a4 4 0 01-4-4V6z" clip-rule="evenodd" /></svg>
+                                        Join Requests (${c.joinRequestCount || 0})
+                                    </p>
+                                    <div class="pl-7">${pendingRequestsHtml}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-6">
+                            <a href="./create/page.html?id=${c.id}" class="block w-full text-center bg-indigo-600 text-white py-2.5 rounded-md font-semibold text-sm hover:bg-indigo-700">View Classroom</a>
+                        </div>
+                    </div>
+                `;
+                classroomsGrid.insertAdjacentHTML('beforeend', card);
+            });
+
+            document.querySelectorAll('.approve-btn, .deny-btn').forEach(button => {
+                button.addEventListener('click', handleRequestAction);
+            });
+        };
+
+        const loadClassrooms = async (teacherId) => {
+            try {
+                const classroomsQuery = query(collection(db, "classrooms"), where("teacherId", "==", teacherId));
+                const classroomsSnapshot = await getDocs(classroomsQuery);
+                let classrooms = classroomsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                const requestsQuery = query(collection(db, "joinRequests"), where("teacherId", "==", teacherId));
+                const requestsSnapshot = await getDocs(requestsQuery);
+                const joinRequests = requestsSnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+
+                classrooms = classrooms.map(classroom => {
+                    const studentCount = joinRequests.filter(r => r.classroomId === classroom.id && r.status === 'approved').length;
+                    const pendingRequests = joinRequests.filter(r => r.classroomId === classroom.id && r.status === 'pending');
+                    return { ...classroom, studentCount, joinRequestCount: pendingRequests.length, pendingRequests };
+                });
+
+                renderClassrooms(classrooms);
+
+            } catch (error) {
+                console.error("Error loading classrooms:", error);
+                noClassroomsMessage.textContent = "Could not load classrooms.";
+            }
+        };
+
+        createClassroomForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser) {
+                alert("You must be logged in to create a classroom.");
+                return;
+            }
+
+            const name = document.getElementById('classroom-name').value;
+            const description = document.getElementById('classroom-description').value;
+
+            try {
+                await addDoc(collection(db, "classrooms"), {
+                    name: name,
+                    description: description,
+                    teacherId: currentUser.uid,
+                    createdAt: serverTimestamp()
+                });
+                createClassroomForm.reset();
+                closeModal();
+                loadClassrooms(currentUser.uid);
+            } catch (error) {
+                console.error("Error creating classroom: ", error);
+                alert("Failed to create classroom. Please try again.");
+            }
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                loadClassrooms(user.uid);
+            } else {
+                window.location.href = '../../login/page.html';
+            }
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            signOut(auth).then(() => {
+                window.location.href = '../../login/page.html';
+            }).catch((error) => {
+                console.error("Sign Out Error", error);
+            });
+        });
+
+    </script>
+</body>
+</html>

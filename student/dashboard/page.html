@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - LearnifyAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+        }
+        .skill-badge {
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .skill-beginner { background-color: #dcfce7; color: #166534; }
+        .skill-intermediate { background-color: #fef9c3; color: #854d0e; }
+        .skill-advanced { background-color: #fee2e2; color: #991b1b; }
+        .tab-active {
+            border-bottom-width: 2px;
+            border-color: #4f46e5; /* indigo-600 */
+            color: #4f46e5;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-8">
+                    <a href="../../index.html" class="text-2xl font-bold text-gray-800">Learnify<span class="text-indigo-600">AI</span></a>
+                    <div class="hidden md:flex items-center space-x-4">
+                         <a href="#" class="text-indigo-600 font-semibold border-b-2 border-indigo-600 px-3 py-2 text-sm">Dashboard</a>
+                         <a href="../classrooms/page.html" class="text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium">Classrooms</a>
+                    </div>
+                </div>
+                <button id="logout-btn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition text-sm">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-10 sm:px-6 lg:px-8">
+        <!-- Welcome Header -->
+        <div class="px-4 md:px-0">
+            <h2 id="welcome-message" class="text-3xl font-bold text-gray-800">Welcome!</h2>
+            <p class="text-gray-500 mt-1">Ready to test your knowledge or check on your classrooms?</p>
+            <p class="text-xs text-gray-400 mt-2" id="user-id-display"></p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="mt-8 border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                <a href="#" class="tab-active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" aria-current="page">
+                    Quizzes
+                </a>
+                <a href="../classrooms/page.html" class="text-gray-500 hover:text-gray-700 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                    Classrooms
+                </a>
+            </nav>
+        </div>
+
+
+        <!-- Filters -->
+        <div class="mt-8 p-6 bg-white rounded-lg shadow-sm border border-gray-200">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label for="search-quiz" class="text-sm font-medium text-gray-700">Search Quiz</label>
+                    <input type="text" id="search-quiz" placeholder="Search by title..." class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md">
+                </div>
+                <div>
+                    <label for="filter-subject" class="text-sm font-medium text-gray-700">Filter by Subject</label>
+                    <select id="filter-subject" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <option value="all">All</option>
+                        <!-- Subjects will be populated here -->
+                    </select>
+                </div>
+                <div>
+                    <label for="filter-skill" class="text-sm font-medium text-gray-700">Filter by Skill Level</label>
+                    <select id="filter-skill" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <option value="all">All</option>
+                        <option value="Beginner">Beginner</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Advanced">Advanced</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Available Quizzes -->
+        <div class="mt-10 px-4 md:px-0">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6">Available Public Quizzes</h3>
+            <div id="quizzes-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <p id="no-quizzes-message" class="text-gray-500 col-span-full">Loading quizzes...</p>
+            </div>
+        </div>
+        
+        <!-- Quiz History -->
+        <div class="mt-12 px-4 md:px-0">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6">My Quiz History</h3>
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quiz</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Attempt</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Score</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body" class="bg-white divide-y divide-gray-200">
+                        <!-- History rows go here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { firebaseConfig } from '../../firebase-keys.js';
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        let allQuizzes = [];
+        let quizHistory = [];
+
+        const welcomeMessage = document.getElementById('welcome-message');
+        const userIdDisplay = document.getElementById('user-id-display');
+        const quizzesList = document.getElementById('quizzes-list');
+        const historyTableBody = document.getElementById('history-table-body');
+        const searchInput = document.getElementById('search-quiz');
+        const subjectFilter = document.getElementById('filter-subject');
+        const skillFilter = document.getElementById('filter-skill');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        const getSkillBadgeClass = (skill) => {
+            if (!skill) return '';
+            const lowerSkill = skill.toLowerCase();
+            if (lowerSkill === 'beginner') return 'skill-beginner';
+            if (lowerSkill === 'intermediate') return 'skill-intermediate';
+            if (lowerSkill === 'advanced') return 'skill-advanced';
+            return '';
+        };
+
+        const renderQuizzes = () => {
+            const searchTerm = searchInput.value.toLowerCase();
+            const selectedSubject = subjectFilter.value;
+            const selectedSkill = skillFilter.value;
+
+            const filteredQuizzes = allQuizzes.filter(q => {
+                const titleMatch = q.title.toLowerCase().includes(searchTerm);
+                const subjectMatch = selectedSubject === 'all' || q.subject === selectedSubject;
+                const skillMatch = selectedSkill === 'all' || q.skillLevel === selectedSkill;
+                return titleMatch && subjectMatch && skillMatch;
+            });
+
+            quizzesList.innerHTML = '';
+            if (filteredQuizzes.length === 0) {
+                quizzesList.innerHTML = '<p class="text-gray-500 col-span-full">No quizzes match your criteria.</p>';
+                return;
+            }
+
+            filteredQuizzes.forEach(quiz => {
+                const { id, title, subject, questionsCount, timer, skillLevel } = quiz;
+                const skillBadgeClass = getSkillBadgeClass(skillLevel);
+
+                const quizCard = `
+                    <div class="bg-white p-4 rounded-lg shadow-sm border flex flex-col justify-between">
+                        <div>
+                            <h4 class="font-bold text-gray-800">${title}</h4>
+                            <p class="text-sm text-gray-500 mt-1">${subject}</p>
+                            <div class="flex items-center text-xs text-gray-500 mt-2">
+                                <span>${questionsCount || 0} Questions</span>
+                                ${timer ? `<span class="mx-1">•</span><span>${timer} minutes</span>` : ''}
+                            </div>
+                            <div class="mt-2"><span class="skill-badge ${skillBadgeClass}">${skillLevel}</span></div>
+                        </div>
+                        <div class="mt-4">
+                            <a href="../quiz/page.html?id=${id}" class="block w-full text-center bg-indigo-600 text-white py-2 rounded-md font-semibold text-sm hover:bg-indigo-700">Start Quiz</a>
+                        </div>
+                    </div>
+                `;
+                quizzesList.insertAdjacentHTML('beforeend', quizCard);
+            });
+        };
+
+        const loadQuizzes = async () => {
+            const q = query(collection(db, "quizzes"), where("classroom", "==", "public"));
+            const querySnapshot = await getDocs(q);
+            allQuizzes = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            const subjects = [...new Set(allQuizzes.map(q => q.subject))];
+            subjectFilter.innerHTML = '<option value="all">All</option>';
+            subjects.forEach(s => subjectFilter.insertAdjacentHTML('beforeend', `<option value="${s}">${s}</option>`));
+            
+            renderQuizzes();
+        };
+
+        const loadQuizHistory = async (userId) => {
+            const q = query(collection(db, "attempts"), where("userId", "==", userId));
+            const querySnapshot = await getDocs(q);
+            
+            const historyPromises = querySnapshot.docs.map(async (attemptDoc) => {
+                const attempt = { id: attemptDoc.id, ...attemptDoc.data() };
+                const quizDoc = await getDoc(doc(db, "quizzes", attempt.quizId));
+                return { ...attempt, quizTitle: quizDoc.exists() ? quizDoc.data().title : "Unknown Quiz" };
+            });
+
+            const allHistory = await Promise.all(historyPromises);
+            
+            // Calculate attempt numbers
+            const attemptCounts = new Map();
+            const historyWithAttempts = allHistory
+                .sort((a, b) => a.completedAt.toDate() - b.completedAt.toDate()) // Sort oldest to newest
+                .map(h => {
+                    const count = (attemptCounts.get(h.quizId) || 0) + 1;
+                    attemptCounts.set(h.quizId, count);
+                    return { ...h, attemptNumber: count };
+                });
+
+            // Sort for display (newest first)
+            quizHistory = historyWithAttempts.sort((a, b) => b.completedAt.toDate() - a.completedAt.toDate());
+
+            historyTableBody.innerHTML = '';
+            if (quizHistory.length === 0) {
+                historyTableBody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-gray-500">No quiz history found.</td></tr>';
+                return;
+            }
+            
+            quizHistory.forEach(h => {
+                const date = h.completedAt.toDate().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                const row = `
+                    <tr>
+                        <td class="px-6 py-4 text-sm font-medium text-gray-800">${h.quizTitle}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600">${h.attemptNumber}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600">${h.score}%</td>
+                        <td class="px-6 py-4 text-sm text-gray-600">${date}</td>
+                        <td class="px-6 py-4 text-right text-sm font-medium">
+                            <a href="../quiz/results/page.html?attemptId=${h.id}" class="text-indigo-600 hover:text-indigo-900">View Results</a>
+                        </td>
+                    </tr>
+                `;
+                historyTableBody.insertAdjacentHTML('beforeend', row);
+            });
+        };
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    welcomeMessage.textContent = `Welcome, ${userData.name}!`;
+                    userIdDisplay.textContent = `Your ID: user-${userData.userId}`;
+                }
+                await loadQuizHistory(user.uid);
+                await loadQuizzes();
+            } else {
+                window.location.href = '../../login/page.html';
+            }
+        });
+
+        searchInput.addEventListener('input', renderQuizzes);
+        subjectFilter.addEventListener('change', renderQuizzes);
+        skillFilter.addEventListener('change', renderQuizzes);
+
+        logoutBtn.addEventListener('click', () => {
+            signOut(auth).then(() => {
+                window.location.href = '../../login/page.html';
+            }).catch((error) => {
+                console.error("Sign Out Error", error);
+            });
+        });
+    </script>
+</body>
+</html>
