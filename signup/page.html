@@ -6,41 +6,7 @@
     <title>Sign Up - LearnifyAI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.4);
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background-color: #fefefe;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 400px;
-            text-align: center;
-            border-radius: 12px;
-            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
-        }
-        .modal-close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-    </style>
+    <link rel="stylesheet" href="../../styles/auth.css">
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
 
@@ -50,8 +16,7 @@
             <p class="text-gray-500 mt-2">Create Your Account</p>
         </div>
 
-        <!-- Signup Form -->
-        <form id="signup-form-element">
+        <form id="signup-form-element" novalidate>
             <div class="mb-4">
                 <label for="signup-name" class="block text-gray-600 mb-2">Full Name</label>
                 <input type="text" id="signup-name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="John Doe" required>
@@ -62,7 +27,7 @@
             </div>
             <div class="mb-4">
                 <label for="signup-password" class="block text-gray-600 mb-2">Password</label>
-                <input type="password" id="signup-password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="••••••••" required>
+                <input type="password" id="signup-password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="At least 6 characters" required>
             </div>
             <div class="mb-6">
                 <label for="role" class="block text-gray-600 mb-2">I am a...</label>
@@ -71,14 +36,22 @@
                     <option value="teacher">Teacher</option>
                 </select>
             </div>
-            <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition duration-300">Create Account</button>
+            <div class="mb-6 p-4 bg-gray-100 rounded-lg text-center">
+                 <label for="captcha" class="block text-gray-700 mb-2 font-semibold">Security Check</label>
+                 <span id="captcha-question" class="text-lg text-gray-800"></span>
+                 <input type="number" id="captcha-input" class="w-full mt-2 px-4 py-2 border border-gray-300 rounded-lg text-center" placeholder="Your answer" required>
+            </div>
+
+            <button type="submit" id="signup-button" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition duration-300 flex justify-center items-center">
+                <span class="btn-text">Create Account</span>
+                <div class="btn-loader"></div>
+            </button>
         </form>
         <p class="text-center text-gray-500 mt-6">
             Already have an account? <a href="../login/page.html" class="text-indigo-600 hover:underline font-semibold">Log In</a>
         </p>
     </div>
 
-    <!-- Modal for notifications -->
     <div id="notification-modal" class="modal">
         <div class="modal-content">
             <span id="modal-close-btn" class="modal-close">&times;</span>
@@ -86,10 +59,8 @@
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
     <script type="module">
         import { firebaseConfig } from '../../firebase-keys.js';
-
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -99,15 +70,56 @@
         const db = getFirestore(app);
 
         const signupForm = document.getElementById('signup-form-element');
+        const signupButton = document.getElementById('signup-button');
         const modal = document.getElementById('notification-modal');
         const modalMessage = document.getElementById('modal-message');
         const modalCloseBtn = document.getElementById('modal-close-btn');
+        const captchaQuestionEl = document.getElementById('captcha-question');
+        const captchaInputEl = document.getElementById('captcha-input');
+        
+        let captchaAnswer = 0;
 
         function showModal(message) {
             modalMessage.textContent = message;
             modal.style.display = 'flex';
         }
         modalCloseBtn.onclick = () => modal.style.display = 'none';
+
+        function generateCaptcha() {
+            const num1 = Math.floor(Math.random() * 10) + 1;
+            const num2 = Math.floor(Math.random() * 10) + 1;
+            captchaAnswer = num1 + num2;
+            captchaQuestionEl.textContent = `What is ${num1} + ${num2}?`;
+        }
+
+        function validateForm() {
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const userAnswer = parseInt(captchaInputEl.value, 10);
+            
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (!name.trim()) {
+                showModal("Please enter your full name.");
+                return false;
+            }
+            if (!emailRegex.test(email)) {
+                showModal("Please enter a valid email address.");
+                return false;
+            }
+            if (password.length < 6) {
+                showModal("Password must be at least 6 characters long.");
+                return false;
+            }
+            if (userAnswer !== captchaAnswer) {
+                showModal("Incorrect answer to the security question. Please try again.");
+                generateCaptcha();
+                captchaInputEl.value = '';
+                return false;
+            }
+            return true;
+        }
 
         async function getUserDocumentWithRetry(userRef, retries = 4, delay = 500) {
             for (let i = 0; i < retries; i++) {
@@ -141,6 +153,11 @@
 
         signupForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (!validateForm()) return;
+
+            signupButton.classList.add('loading');
+            signupButton.disabled = true;
+
             const name = document.getElementById('signup-name').value;
             const email = document.getElementById('signup-email').value;
             const password = document.getElementById('signup-password').value;
@@ -160,8 +177,13 @@
                 });
             } catch (error) {
                 showModal(`Error: ${error.message}`);
+                generateCaptcha();
+                signupButton.classList.remove('loading');
+                signupButton.disabled = false;
             }
         });
+        
+        generateCaptcha();
     </script>
 </body>
 </html>

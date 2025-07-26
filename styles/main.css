@@ -1,0 +1,36 @@
+/* style.css */
+
+/* Apply a smooth scroll behavior when clicking on anchor links */
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f9fafb; /* A light gray background for the body */
+}
+
+.hero-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Add a subtle transition to navigation links */
+header nav a {
+    transition: color 0.3s ease;
+}
+
+/* Style for the feature cards */
+.feature-card {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Add a hover effect to lift the feature cards */
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
