@@ -1,10 +1,18 @@
 # Firebase and AI Keys
-firebase-keys.js
-ai/page.js
+
+public/firebase-keys.js
+public/ai/page.js
 
 # Firebase Emulator Data
 .firebase/
 
-# Node.js dependencies
+# Node.js dependencies (if you install any locally)
 /node_modules
 
+# Firebase CLI cache and project configuration
+# These should always be in the root .gitignore
+.firebaserc
+firebase.json
+
+# Log files
+*.log
