@@ -6,8 +6,12 @@
     <title>AI Study Buddy - LearnifyAI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Add the 'marked' library to render Markdown -->
+    <!-- Markdown & Syntax Highlighting Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <!-- PDF.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.mjs" type="module"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -25,11 +29,11 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        /* Style for the AI's response content */
         .ai-content p { margin-bottom: 0.5rem; }
         .ai-content strong { font-weight: 600; }
-        .ai-content ul { list-style-type: disc; padding-left: 1.5rem; }
-        .ai-content ol { list-style-type: decimal; padding-left: 1.5rem; }
+        .ai-content ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.5rem; }
+        .ai-content ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.5rem; }
+        .ai-content pre { background-color: #f3f4f6; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem; }
     </style>
 </head>
 <body class="bg-gray-50 flex flex-col h-screen">
@@ -72,14 +76,13 @@
 
             <!-- Message Input -->
             <div class="p-4 border-t bg-gray-50 rounded-b-lg">
+                <div id="file-preview-container" class="hidden mb-2"></div>
                 <form id="chat-form" class="flex items-center space-x-3">
-                    <select id="subject-select" class="border-gray-300 rounded-md shadow-sm text-sm">
-                        <option>General</option>
-                        <option>Math</option>
-                        <option>Science</option>
-                        <option>History</option>
-                    </select>
-                    <input type="text" id="message-input" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ask about General..." required>
+                    <label for="file-upload" class="cursor-pointer p-2 rounded-full hover:bg-gray-200">
+                        <svg class="w-6 h-6 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                    </label>
+                    <input type="file" id="file-upload" class="hidden" accept="image/*,application/pdf">
+                    <input type="text" id="message-input" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ask a question, or attach a file..." required>
                     <button type="submit" class="bg-indigo-600 text-white p-2 rounded-lg font-semibold hover:bg-indigo-700 transition flex-shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
                     </button>
@@ -95,18 +98,24 @@
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // PDF.js worker configuration
+        const { pdfjsLib } = globalThis;
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.mjs`;
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
         let currentUser = null;
-        let chatHistory = []; // Temporary memory for the conversation
+        let chatHistory = [];
+        let attachedFile = null;
 
         const chatMessagesEl = document.getElementById('chat-messages');
         const chatForm = document.getElementById('chat-form');
         const messageInput = document.getElementById('message-input');
-        const subjectSelect = document.getElementById('subject-select');
         const logoutBtn = document.getElementById('logout-btn');
+        const fileUploadInput = document.getElementById('file-upload');
+        const filePreviewContainer = document.getElementById('file-preview-container');
 
         const addMessage = (sender, message, initial = 'A') => {
             const wrapper = document.createElement('div');
@@ -122,12 +131,10 @@
             const bubble = document.createElement('div');
             bubble.className = `p-4 rounded-lg max-w-lg ${sender === 'user' ? 'bg-indigo-600 text-white order-1' : 'bg-gray-200 text-gray-800 order-2'}`;
             
-            // FIX: Parse the message from Markdown to HTML if it's from the AI
+            const renderedMessage = marked.parse(message);
+            bubble.innerHTML = renderedMessage;
             if (sender === 'ai') {
-                bubble.innerHTML = marked.parse(message);
-                bubble.classList.add('ai-content'); // Add class for styling
-            } else {
-                bubble.innerHTML = `<p>${message}</p>`;
+                bubble.classList.add('ai-content');
             }
             
             wrapper.innerHTML = iconHtml;
@@ -136,13 +143,17 @@
             chatMessagesEl.appendChild(wrapper);
             chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
 
-            // Add the raw message to our chat history for context
+            // Highlight code blocks
+            wrapper.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+
             const role = sender === 'user' ? 'user' : 'model';
             chatHistory.push({ role: role, parts: [{ text: message }] });
         };
 
         const showLoadingIndicator = () => {
-            const wrapper = document.createElement('div');
+             const wrapper = document.createElement('div');
             wrapper.id = 'loading-bubble';
             wrapper.className = 'flex items-start gap-3 justify-start';
             wrapper.innerHTML = `
@@ -158,6 +169,42 @@
             if (loaderBubble) loaderBubble.remove();
         };
 
+        const handleFileSelect = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            attachedFile = { file: file, type: file.type };
+            
+            let previewHtml = `<div class="flex items-center justify-between bg-gray-200 p-2 rounded-md text-sm">`;
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewHtml += `<img src="${e.target.result}" class="w-10 h-10 rounded-md object-cover mr-2">`;
+                    finishPreview();
+                };
+                reader.readAsDataURL(file);
+            } else {
+                 previewHtml += `<span class="font-medium">${file.name}</span>`;
+                 finishPreview();
+            }
+
+            function finishPreview() {
+                previewHtml += `<button id="remove-file-btn" class="text-red-500 hover:text-red-700">&times;</button></div>`;
+                filePreviewContainer.innerHTML = previewHtml;
+                filePreviewContainer.classList.remove('hidden');
+                document.getElementById('remove-file-btn').addEventListener('click', removeFile);
+            }
+        };
+
+        const removeFile = () => {
+            attachedFile = null;
+            fileUploadInput.value = ''; // Reset the input
+            filePreviewContainer.innerHTML = '';
+            filePreviewContainer.classList.add('hidden');
+        };
+
+        fileUploadInput.addEventListener('change', handleFileSelect);
+
         chatForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const userMessage = messageInput.value.trim();
@@ -168,26 +215,55 @@
             messageInput.value = '';
             showLoadingIndicator();
 
-            const subject = subjectSelect.value;
-            // Prepend subject to the first user message of a session for context
-            if (chatHistory.filter(m => m.role === 'user').length === 1) {
-                 chatHistory[chatHistory.length - 1].parts[0].text = `My current subject is ${subject}. My question is: ${userMessage}`;
+            let fileDataForApi = null;
+            if (attachedFile) {
+                try {
+                    if (attachedFile.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        fileDataForApi = await new Promise((resolve) => {
+                            reader.onload = (e) => resolve({ type: attachedFile.type, data: e.target.result });
+                            reader.readAsDataURL(attachedFile.file);
+                        });
+                    } else if (attachedFile.type === 'application/pdf') {
+                        const text = await new Promise((resolve, reject) => {
+                             const reader = new FileReader();
+                             reader.onload = async (event) => {
+                                try {
+                                    const typedarray = new Uint8Array(event.target.result);
+                                    const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                                    let content = '';
+                                    for (let i = 1; i <= pdf.numPages; i++) {
+                                        const page = await pdf.getPage(i);
+                                        const textContent = await page.getTextContent();
+                                        content += textContent.items.map(s => s.str).join(' ');
+                                    }
+                                    resolve(content);
+                                } catch (err) { reject(err); }
+                             };
+                             reader.readAsArrayBuffer(attachedFile.file);
+                        });
+                        fileDataForApi = { type: attachedFile.type, data: text };
+                    }
+                } catch (err) {
+                    removeLoadingIndicator();
+                    addMessage('ai', `<p class="text-red-500">Error processing file: ${err.message}</p>`);
+                    removeFile();
+                    return;
+                }
             }
 
             try {
-                const aiResponse = await generateContent(chatHistory);
+                const aiResponse = await generateContent(chatHistory, fileDataForApi);
                 removeLoadingIndicator();
                 addMessage('ai', aiResponse);
             } catch (error) {
                 removeLoadingIndicator();
                 addMessage('ai', `<p class="text-red-500">Sorry, I encountered an error. Please try again. <br><small>${error.message}</small></p>`);
+            } finally {
+                removeFile(); // Clear file after sending
             }
         });
         
-        subjectSelect.addEventListener('change', () => {
-            messageInput.placeholder = `Ask about ${subjectSelect.value}...`;
-        });
-
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
@@ -195,8 +271,7 @@
                 if (userDoc.exists()) {
                     currentUser.displayName = userDoc.data().name;
                 }
-                // Add the initial welcome message to the UI and history
-                addMessage('ai', "Hello! I'm your AI Study Buddy. Ask me anything about your subjects, and I'll do my best to help you understand.");
+                addMessage('ai', "Hello! I'm your AI Study Buddy. Ask me anything about your subjects, or upload a file to discuss!");
             } else {
                 window.location.href = '../../login/page.html';
             }

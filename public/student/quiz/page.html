@@ -6,51 +6,109 @@
     <title>Take Quiz - LearnifyAI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../styles/quiz.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        .option-label {
+            display: block;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .option-label:hover {
+            background-color: #f3f4f6;
+        }
+        input[type="radio"]:checked + .option-label {
+            border-color: #4f46e5;
+            background-color: #eef2ff;
+            box-shadow: 0 0 0 2px #4f46e5;
+        }
+        #fullscreen-wrapper:fullscreen {
+            background-color: #f9fafb;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+    </style>
 </head>
-<body class="bg-gray-50">
-
-    <!-- Main Content -->
-    <main class="max-w-3xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div class="mb-6">
-            <a href="../dashboard/page.html" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800">&larr; Back to Dashboard</a>
-        </div>
-        <div id="quiz-container" class="bg-white p-8 rounded-xl shadow-lg border border-gray-200">
-            <!-- Header: Title and Timer -->
-            <div class="flex justify-between items-center border-b pb-4 mb-6">
-                <div>
-                    <h1 id="quiz-title" class="text-2xl font-bold text-gray-900">Loading Quiz...</h1>
-                    <p id="question-counter" class="text-sm text-gray-500 mt-1"></p>
+<body>
+    <div id="fullscreen-wrapper">
+        <!-- Lobby View (Visible First) -->
+        <div id="lobby-view" class="flex items-center justify-center min-h-screen">
+             <main class="max-w-2xl mx-auto p-8 bg-white rounded-xl shadow-lg border">
+                <div class="text-center">
+                    <h1 id="lobby-quiz-title" class="text-3xl font-bold text-gray-900">Loading Quiz...</h1>
+                    <p class="mt-2 text-gray-600">Please read the rules carefully before you begin.</p>
                 </div>
-                <div id="timer-container" class="text-lg font-semibold text-indigo-600">
-                    <span id="timer">--:--</span>
+
+                <div class="mt-8 p-6 bg-red-50 border-l-4 border-red-400 rounded-r-lg">
+                    <h2 class="text-xl font-bold text-red-800">Important Rules</h2>
+                    <ul class="mt-4 space-y-2 text-red-700 list-disc list-inside">
+                        <li>This quiz must be completed in fullscreen mode.</li>
+                        <li>Exiting fullscreen at any point will **automatically submit** your quiz.</li>
+                        <li>Taking screenshots or copying text is not allowed.</li>
+                        <li id="quiz-time-rule">This quiz is timed.</li>
+                    </ul>
+                </div>
+                
+                <div class="mt-8">
+                    <button id="start-quiz-btn" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition duration-300 disabled:bg-gray-400">
+                        Start Quiz in Fullscreen
+                    </button>
+                    <a href="../dashboard/page.html" class="block text-center mt-4 text-sm text-gray-600 hover:underline">Cancel and go back to Dashboard</a>
+                </div>
+            </main>
+        </div>
+
+        <!-- Quiz View (Hidden Initially) -->
+        <main id="quiz-view" class="max-w-3xl mx-auto hidden">
+            <div id="quiz-container" class="bg-white p-8 rounded-xl shadow-lg border border-gray-200">
+                <div class="flex justify-between items-center border-b pb-4 mb-6">
+                    <div>
+                        <h1 id="quiz-title" class="text-2xl font-bold text-gray-900"></h1>
+                        <p id="question-counter" class="text-sm text-gray-500 mt-1"></p>
+                    </div>
+                    <div id="timer-container" class="text-lg font-semibold text-indigo-600">
+                        <span id="timer">--:--</span>
+                    </div>
+                </div>
+                <div id="question-area" class="hidden">
+                    <h2 id="question-text" class="text-xl font-semibold text-gray-800 mb-6"></h2>
+                    <div id="options-container" class="space-y-4"></div>
+                </div>
+                <div id="message-area" class="text-center p-8">
+                    <p id="message-text" class="text-gray-600"></p>
+                </div>
+                <div id="navigation-area" class="hidden mt-8 pt-6 border-t flex justify-between items-center">
+                    <button id="prev-btn" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-semibold">Previous</button>
+                    <button id="next-btn" class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-semibold">Next</button>
+                    <button id="submit-btn" class="hidden bg-green-500 text-white px-6 py-2 rounded-lg font-semibold">Submit Quiz</button>
                 </div>
             </div>
+        </main>
+    </div>
 
-            <!-- Question Area -->
-            <div id="question-area" class="hidden">
-                <h2 id="question-text" class="text-xl font-semibold text-gray-800 mb-6"></h2>
-                <div id="options-container" class="space-y-4"></div>
+    <!-- Notification Modal -->
+    <div id="notification-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="relative mx-auto p-5 border w-96 shadow-lg rounded-md bg-white text-center">
+            <h3 id="modal-title" class="text-lg leading-6 font-bold text-gray-900"></h3>
+            <div class="mt-2 px-7 py-3">
+                <p id="modal-message" class="text-sm text-gray-500"></p>
             </div>
-            
-             <!-- Loading/Error Message -->
-            <div id="message-area" class="text-center p-8">
-                <p id="message-text" class="text-gray-600">Please wait while we load the quiz questions.</p>
-            </div>
-
-            <!-- Navigation -->
-            <div id="navigation-area" class="hidden mt-8 pt-6 border-t flex justify-between items-center">
-                <button id="prev-btn" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-semibold hover:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
-                <button id="next-btn" class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition">Next</button>
-                <button id="submit-btn" class="hidden bg-green-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-600 transition">Submit Quiz</button>
+            <div class="items-center px-4 py-3">
+                <button id="modal-close-btn" class="px-4 py-2 bg-indigo-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-indigo-600">OK</button>
             </div>
         </div>
-    </main>
+    </div>
 
-    <!-- Firebase SDKs -->
     <script type="module">
         import { firebaseConfig } from '../../firebase-keys.js';
-
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, collection, getDocs, addDoc, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -65,6 +123,15 @@
         let userAnswers = [];
         let currentQuestionIndex = 0;
         let quizTimerInterval = null;
+        let quizSubmitted = false;
+        let isQuizActive = false;
+        
+        const lobbyView = document.getElementById('lobby-view');
+        const quizView = document.getElementById('quiz-view');
+        
+        const lobbyQuizTitleEl = document.getElementById('lobby-quiz-title');
+        const quizTimeRuleEl = document.getElementById('quiz-time-rule');
+        const startQuizBtn = document.getElementById('start-quiz-btn');
 
         const quizTitleEl = document.getElementById('quiz-title');
         const questionCounterEl = document.getElementById('question-counter');
@@ -78,6 +145,20 @@
         const messageText = document.getElementById('message-text');
         const timerEl = document.getElementById('timer');
         const navigationArea = document.getElementById('navigation-area');
+        const modal = document.getElementById('notification-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+
+        function showNotification(title, message, onOk) {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            modal.style.display = 'flex';
+            modalCloseBtn.onclick = () => {
+                modal.style.display = 'none';
+                if (onOk) onOk();
+            };
+        }
 
         const renderQuestion = () => {
             if (questions.length === 0) {
@@ -106,7 +187,7 @@
                     </div>`);
             });
 
-            if (userAnswers[currentQuestionIndex] !== undefined) {
+            if (userAnswers[currentQuestionIndex] !== null) {
                 const selectedRadio = optionsContainerEl.querySelector(`input[value="${userAnswers[currentQuestionIndex]}"]`);
                 if (selectedRadio) selectedRadio.checked = true;
             }
@@ -122,10 +203,15 @@
         
         const saveAnswer = () => {
             const selectedOption = optionsContainerEl.querySelector('input[name="option"]:checked');
-            if (selectedOption) userAnswers[currentQuestionIndex] = parseInt(selectedOption.value);
+            if (selectedOption) {
+                userAnswers[currentQuestionIndex] = parseInt(selectedOption.value);
+            }
         };
 
-        const handleSubmit = async () => {
+        const handleSubmit = async (isAutoSubmit = false) => {
+            if (quizSubmitted) return;
+            quizSubmitted = true;
+
             saveAnswer();
             clearInterval(quizTimerInterval);
             submitBtn.disabled = true;
@@ -137,14 +223,14 @@
                     correctCount++;
                 }
             });
-            const score = Math.round((correctCount / questions.length) * 100);
-
+            const score = questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0;
+            
             try {
                 const attemptDocRef = await addDoc(collection(db, "attempts"), {
                     userId: currentUser.uid,
                     quizId: quizId,
                     score: score,
-                    userAnswers: userAnswers,
+                    userAnswers: userAnswers, // This array now correctly contains null for unanswered questions
                     completedAt: serverTimestamp()
                 });
 
@@ -155,14 +241,22 @@
                     const newAttempts = (quizDoc.data().attempts || 0) + 1;
                     transaction.update(quizRef, { attempts: newAttempts });
                 });
+                
+                if (document.fullscreenElement) {
+                    await document.exitFullscreen();
+                }
+                
+                const title = isAutoSubmit ? "Quiz Auto-Submitted" : "Quiz Submitted!";
+                const message = isAutoSubmit ? "Your quiz was submitted because you exited fullscreen mode." : "Your quiz has been submitted successfully.";
 
-                window.location.href = `./results/page.html?attemptId=${attemptDocRef.id}`;
+                showNotification(title, message, () => {
+                     window.location.href = `./results/page.html?attemptId=${attemptDocRef.id}`;
+                });
 
             } catch (error) {
                 console.error("Error submitting quiz:", error);
-                alert("Could not submit your quiz. Please try again.");
-                submitBtn.disabled = false;
-                submitBtn.textContent = "Submit Quiz";
+                showNotification("Error", "Could not submit your quiz. Please try again.");
+                quizSubmitted = false;
             }
         };
 
@@ -178,7 +272,7 @@
             renderQuestion();
         });
 
-        submitBtn.addEventListener('click', handleSubmit);
+        submitBtn.addEventListener('click', () => handleSubmit(false));
 
         const startTimer = (durationInMinutes) => {
             if (durationInMinutes <= 0) {
@@ -192,13 +286,12 @@
                 timerEl.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
                 if (--timeRemaining < 0) {
                     clearInterval(quizTimerInterval);
-                    handleSubmit();
+                    handleSubmit(true);
                 }
             }, 1000);
         };
 
-        const loadQuiz = async (id) => {
-            quizId = id;
+        const loadQuizData = async () => {
             try {
                 const quizRef = doc(db, "quizzes", quizId);
                 const quizSnap = await getDoc(quizRef);
@@ -213,9 +306,11 @@
                 const questionsSnap = await getDocs(questionsRef);
                 
                 questions = questionsSnap.docs.map(d => d.data());
-                userAnswers = new Array(questions.length);
+                // FIX: Initialize the answers array with null for every question.
+                userAnswers = new Array(questions.length).fill(null);
 
                 renderQuestion();
+                isQuizActive = true;
 
             } catch (error) {
                 console.error("Error loading quiz:", error);
@@ -223,6 +318,52 @@
                 messageText.textContent = "Could not load the quiz. Please try again later.";
             }
         };
+        
+        const loadLobbyInfo = async (id) => {
+            quizId = id;
+            const quizRef = doc(db, "quizzes", quizId);
+            const quizSnap = await getDoc(quizRef);
+
+            if (quizSnap.exists()) {
+                const quizData = quizSnap.data();
+                lobbyQuizTitleEl.textContent = quizData.title;
+                if (quizData.timer && quizData.timer > 0) {
+                    quizTimeRuleEl.textContent = `This quiz has a time limit of ${quizData.timer} minutes.`;
+                } else {
+                    quizTimeRuleEl.textContent = "This quiz has no time limit.";
+                }
+                startQuizBtn.disabled = false;
+            } else {
+                lobbyQuizTitleEl.textContent = "Quiz Not Found";
+                startQuizBtn.disabled = true;
+            }
+        };
+
+        startQuizBtn.addEventListener('click', async () => {
+            try {
+                await document.documentElement.requestFullscreen();
+                lobbyView.classList.add('hidden');
+                quizView.classList.remove('hidden');
+                loadQuizData();
+            } catch (err) {
+                showNotification("Fullscreen Required", "Please allow fullscreen mode to start the quiz.");
+            }
+        });
+
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement && isQuizActive && !quizSubmitted) {
+                handleSubmit(true);
+            }
+        });
+
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        document.addEventListener('keydown', event => {
+            if (event.ctrlKey && (event.key === 'c' || event.key === 'C')) {
+                event.preventDefault();
+                showNotification("Action Blocked", "Copying text is not allowed during the quiz.");
+            }
+        });
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -230,10 +371,10 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 const id = urlParams.get('id');
                 if (id) {
-                    loadQuiz(id);
+                    loadLobbyInfo(id);
                 } else {
-                    quizTitleEl.textContent = "No Quiz Selected";
-                    messageText.textContent = "Please go back to the dashboard and select a quiz.";
+                    lobbyQuizTitleEl.textContent = "No Quiz Selected";
+                    startQuizBtn.disabled = true;
                 }
             } else {
                 window.location.href = `../../login/page.html`;

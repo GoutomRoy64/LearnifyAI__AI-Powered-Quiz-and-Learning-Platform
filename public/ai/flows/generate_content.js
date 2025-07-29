@@ -3,33 +3,42 @@
 import { GEMINI_API_KEY } from '../page.js';
 
 /**
- * Generates a text response from a given conversation history using the Gemini API.
- * @param {Array<Object>} chatHistory The conversation history, e.g., [{ role: 'user', parts: [...] }, { role: 'model', parts: [...] }]
+ * Generates a text response from a given conversation history and optional file context.
+ * @param {Array<Object>} chatHistory The conversation history.
+ * @param {Object|null} fileData The file to be included for context, if any.
  * @returns {Promise<string>} A promise that resolves to the AI-generated text response.
  */
-export async function generateContent(chatHistory) {
+export async function generateContent(chatHistory, fileData = null) {
     const apiKey = GEMINI_API_KEY;
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
+    let latestUserContent = [...chatHistory]; // Create a mutable copy
+
+    // If a file is provided, modify the last user message to include it
+    if (fileData) {
+        const lastUserMessage = latestUserContent[latestUserContent.length - 1];
+        
+        if (fileData.type.startsWith('image/')) {
+            // For images, add the image data as a new part
+            lastUserMessage.parts.push({
+                inline_data: {
+                    mime_type: fileData.type,
+                    data: fileData.data.split(',')[1] // Remove the base64 prefix
+                }
+            });
+        } else if (fileData.type === 'application/pdf') {
+            // For PDFs, prepend the extracted text to the user's prompt
+            lastUserMessage.parts[0].text = `Based on the following document text, please answer my question.\n\nDocument Text:\n"""${fileData.data}"""\n\nQuestion: ${lastUserMessage.parts[0].text}`;
+        }
+    }
+
     const payload = {
-        contents: chatHistory, // Use the entire conversation history for context
+        contents: latestUserContent,
         safetySettings: [
-            {
-                "category": "HARM_CATEGORY_HARASSMENT",
-                "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-            },
-            {
-                "category": "HARM_CATEGORY_HATE_SPEECH",
-                "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-            },
-            {
-                "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-                "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-            },
-            {
-                "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-                "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-            }
+            { "category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE" },
+            { "category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_MEDIUM_AND_ABOVE" },
+            { "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_MEDIUM_AND_ABOVE" },
+            { "category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE" }
         ],
         systemInstruction: {
             parts: [{
