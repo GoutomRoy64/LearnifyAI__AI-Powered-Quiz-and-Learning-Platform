@@ -6,56 +6,73 @@
     <title>Sign Up - LearnifyAI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../styles/auth.css">
+    <link rel="stylesheet" href="../styles/auth.css">
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+<body>
 
-    <div class="container mx-auto max-w-md p-8 bg-white rounded-2xl shadow-lg">
+    <div class="auth-container container mx-auto max-w-md p-8 text-white">
         <div class="text-center mb-8">
-            <a href="../index.html" class="text-4xl font-bold text-gray-800">Learnify<span class="text-indigo-600">AI</span></a>
-            <p class="text-gray-500 mt-2">Create Your Account</p>
+            <a href="../index.html" class="text-4xl font-bold">Learnify<span class="text-cyan-300">AI</span></a>
+            <p class="text-gray-200 mt-2">Create Your Account</p>
         </div>
 
         <form id="signup-form-element" novalidate>
             <div class="mb-4">
-                <label for="signup-name" class="block text-gray-600 mb-2">Full Name</label>
-                <input type="text" id="signup-name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="John Doe" required>
+                <label for="signup-name" class="block text-gray-100 mb-2">Full Name</label>
+                <input type="text" id="signup-name" class="auth-input w-full px-4 py-3 rounded-lg" placeholder="Your Full Name" required>
             </div>
             <div class="mb-4">
-                <label for="signup-email" class="block text-gray-600 mb-2">Email Address</label>
-                <input type="email" id="signup-email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="you@example.com" required>
+                <label for="signup-email" class="block text-gray-100 mb-2">Email Address</label>
+                <input type="email" id="signup-email" class="auth-input w-full px-4 py-3 rounded-lg" placeholder="you@example.com" required>
             </div>
             <div class="mb-4">
-                <label for="signup-password" class="block text-gray-600 mb-2">Password</label>
-                <input type="password" id="signup-password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="At least 6 characters" required>
+                <label for="signup-password" class="block text-gray-100 mb-2">Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="signup-password" class="auth-input w-full px-4 py-3 rounded-lg" placeholder="At least 6 characters" required>
+                    <button type="button" id="password-toggle" class="password-toggle">
+                        <svg id="eye-open" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.022 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg>
+                        <svg id="eye-closed" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clip-rule="evenodd" /><path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.742L2.293 6.546A10.004 10.004 0 00.458 10c1.274 4.057 5.022 7 9.542 7 .847 0 1.669-.105 2.454-.303z" /></svg>
+                    </button>
+                </div>
             </div>
             <div class="mb-6">
-                <label for="role" class="block text-gray-600 mb-2">I am a...</label>
-                <select id="role" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <option value="student">Student</option>
-                    <option value="teacher">Teacher</option>
-                </select>
+                <label class="block text-gray-100 mb-2">I am a...</label>
+                <div class="role-selection">
+                    <div>
+                        <input type="radio" id="role-student" name="role" value="student" class="role-radio" checked>
+                        <label for="role-student" class="role-card">Student</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="role-teacher" name="role" value="teacher" class="role-radio">
+                        <label for="role-teacher" class="role-card">Teacher</label>
+                    </div>
+                </div>
             </div>
-            <div class="mb-6 p-4 bg-gray-100 rounded-lg text-center">
-                 <label for="captcha" class="block text-gray-700 mb-2 font-semibold">Security Check</label>
-                 <span id="captcha-question" class="text-lg text-gray-800"></span>
-                 <input type="number" id="captcha-input" class="w-full mt-2 px-4 py-2 border border-gray-300 rounded-lg text-center" placeholder="Your answer" required>
+            <div class="mb-6 p-4 bg-white/20 rounded-lg text-center">
+                 <label for="captcha" class="block text-white mb-2 font-semibold">Security Check</label>
+                 <span id="captcha-question" class="text-lg text-white"></span>
+                 <input type="number" id="captcha-input" class="auth-input w-full mt-2 px-4 py-2 rounded-lg text-center" placeholder="Your answer" required>
             </div>
 
-            <button type="submit" id="signup-button" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition duration-300 flex justify-center items-center">
+            <button type="submit" id="signup-button" class="auth-button w-full py-3 rounded-lg font-semibold flex justify-center items-center">
                 <span class="btn-text">Create Account</span>
                 <div class="btn-loader"></div>
             </button>
         </form>
-        <p class="text-center text-gray-500 mt-6">
-            Already have an account? <a href="../login/page.html" class="text-indigo-600 hover:underline font-semibold">Log In</a>
+        <p class="text-center text-gray-200 mt-6">
+            Already have an account? <a href="../login/page.html" class="text-cyan-300 hover:underline font-semibold">Log In</a>
         </p>
     </div>
 
+    <!-- Updated Notification Modal -->
     <div id="notification-modal" class="modal">
         <div class="modal-content">
-            <span id="modal-close-btn" class="modal-close">&times;</span>
-            <p id="modal-message"></p>
+            <div id="modal-icon" class="modal-icon error">
+                <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </div>
+            <h3 id="modal-title" class="modal-title">Error</h3>
+            <p id="modal-message" class="modal-message">Something went wrong.</p>
+            <button id="modal-close-btn" class="modal-button">OK</button>
         </div>
     </div>
 
@@ -72,14 +89,20 @@
         const signupForm = document.getElementById('signup-form-element');
         const signupButton = document.getElementById('signup-button');
         const modal = document.getElementById('notification-modal');
+        const modalTitle = document.getElementById('modal-title');
         const modalMessage = document.getElementById('modal-message');
         const modalCloseBtn = document.getElementById('modal-close-btn');
         const captchaQuestionEl = document.getElementById('captcha-question');
         const captchaInputEl = document.getElementById('captcha-input');
+        const passwordInput = document.getElementById('signup-password');
+        const passwordToggle = document.getElementById('password-toggle');
+        const eyeOpen = document.getElementById('eye-open');
+        const eyeClosed = document.getElementById('eye-closed');
         
         let captchaAnswer = 0;
 
-        function showModal(message) {
+        function showModal(title, message) {
+            modalTitle.textContent = title;
             modalMessage.textContent = message;
             modal.style.display = 'flex';
         }
@@ -95,25 +118,25 @@
         function validateForm() {
             const name = document.getElementById('signup-name').value;
             const email = document.getElementById('signup-email').value;
-            const password = document.getElementById('signup-password').value;
+            const password = passwordInput.value;
             const userAnswer = parseInt(captchaInputEl.value, 10);
             
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
             if (!name.trim()) {
-                showModal("Please enter your full name.");
+                showModal("Validation Error", "Please enter your full name.");
                 return false;
             }
             if (!emailRegex.test(email)) {
-                showModal("Please enter a valid email address.");
+                showModal("Validation Error", "Please enter a valid email address.");
                 return false;
             }
             if (password.length < 6) {
-                showModal("Password must be at least 6 characters long.");
+                showModal("Validation Error", "Password must be at least 6 characters long.");
                 return false;
             }
             if (userAnswer !== captchaAnswer) {
-                showModal("Incorrect answer to the security question. Please try again.");
+                showModal("Security Check Failed", "Incorrect answer to the security question. Please try again.");
                 generateCaptcha();
                 captchaInputEl.value = '';
                 return false;
@@ -151,6 +174,18 @@
             }
         });
 
+        passwordToggle.addEventListener('click', () => {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeOpen.classList.add('hidden');
+                eyeClosed.classList.remove('hidden');
+            } else {
+                passwordInput.type = 'password';
+                eyeOpen.classList.remove('hidden');
+                eyeClosed.classList.add('hidden');
+            }
+        });
+
         signupForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!validateForm()) return;
@@ -160,8 +195,8 @@
 
             const name = document.getElementById('signup-name').value;
             const email = document.getElementById('signup-email').value;
-            const password = document.getElementById('signup-password').value;
-            const role = document.getElementById('role').value;
+            const password = passwordInput.value;
+            const role = document.querySelector('input[name="role"]:checked').value;
 
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -176,7 +211,7 @@
                     transaction.set(userDocRef, { name, email, role, userId: newUserId });
                 });
             } catch (error) {
-                showModal(`Error: ${error.message}`);
+                showModal("Signup Error", error.message);
                 generateCaptcha();
                 signupButton.classList.remove('loading');
                 signupButton.disabled = false;
