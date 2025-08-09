@@ -1,4 +1,4 @@
-/* style.css */
+/* styles/main.css */
 
 /* Apply a smooth scroll behavior when clicking on anchor links */
 html {
@@ -33,4 +33,34 @@ header nav a {
 .feature-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Styling for the new icons in the feature cards */
+.feature-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 3rem; /* 48px */
+    width: 3rem; /* 48px */
+    margin-bottom: 1rem;
+    border-radius: 0.5rem; /* rounded-lg */
+    background-color: #eef2ff; /* indigo-100 */
+    color: #4f46e5; /* indigo-600 */
+}
+
+/* Animation for the hero text */
+.fade-in-up {
+    animation: fadeInUp 1s ease-out forwards;
+    opacity: 0;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
