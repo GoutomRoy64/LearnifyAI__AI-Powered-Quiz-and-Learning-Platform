@@ -34,3 +34,54 @@ body {
     align-items: center;
     justify-content: center;
 }
+
+/* Styles for AI-generated advice content */
+.ai-advice-content p { 
+    margin-bottom: 0.5rem; 
+}
+
+.ai-advice-content strong { 
+    font-weight: 600; 
+}
+
+.ai-advice-content ul { 
+    list-style-type: disc; 
+    padding-left: 1.5rem; 
+    margin-bottom: 0.5rem; 
+}
+
+/* Styling for the loading spinner */
+.ai-advice-loader {
+    display: none;
+    border: 3px solid #e5e7eb; /* gray-200 */
+    border-top: 3px solid #4f46e5; /* indigo-600 */
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    animation: spin 1s linear infinite;
+    margin: 1rem auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Loader for the Analyze Performance button */
+.analyze-loader {
+    display: none; /* Hidden by default */
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+}
+
+button.loading .analyze-loader {
+    display: block;
+}
+
+button.loading .btn-text {
+    display: none;
+}

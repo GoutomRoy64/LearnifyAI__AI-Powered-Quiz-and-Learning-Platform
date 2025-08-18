@@ -3,107 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create a New Quiz - LearnifyAI</title>
+    <title>Create Quiz - LearnifyAI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../styles/quiz.css">
+    <!-- PDF.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.mjs" type="module"></script>
 </head>
 <body class="bg-gray-50">
 
-    <!-- Main Content -->
-    <main class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div class="space-y-10">
-            <!-- Header -->
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900">Create a New Quiz</h1>
-                <p class="mt-2 text-sm text-gray-500">Fill out the details below, or generate questions with AI.</p>
-                <button type="button" id="generate-ai-btn" class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                    Generate with AI
-                </button>
-            </div>
-
-            <form id="create-quiz-form" class="space-y-8">
-                <!-- Quiz Details Section -->
-                <div class="bg-white p-8 rounded-lg shadow-sm border border-gray-200">
-                    <h2 class="text-xl font-semibold text-gray-900">Quiz Details</h2>
-                    <p class="mt-1 text-sm text-gray-600">Provide basic information for your quiz.</p>
-                    <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="quiz-title" class="block text-sm font-medium text-gray-700">Quiz Title</label>
-                            <input type="text" id="quiz-title" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
-                        </div>
-                        <div>
-                            <label for="quiz-subject" class="block text-sm font-medium text-gray-700">Subject</label>
-                            <input type="text" id="quiz-subject" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
-                        </div>
-                        <div>
-                            <label for="skill-level" class="block text-sm font-medium text-gray-700">Skill Level</label>
-                            <select id="skill-level" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
-                                <option>Beginner</option>
-                                <option>Intermediate</option>
-                                <option>Advanced</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="quiz-timer" class="block text-sm font-medium text-gray-700">Timer (minutes)</label>
-                            <input type="number" id="quiz-timer" placeholder="e.g., 10" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                            <p class="mt-1 text-xs text-gray-500">Leave blank or 0 for no time limit.</p>
-                        </div>
-                        <div class="md:col-span-2">
-                            <label for="classroom" class="block text-sm font-medium text-gray-700">Classroom (Optional)</label>
-                            <select id="classroom" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                                <option value="public">Public (No Classroom)</option>
-                                <!-- Classrooms would be dynamically loaded here -->
-                            </select>
-                            <p class="mt-1 text-xs text-gray-500">If assigned, this quiz will only be visible to students in that classroom.</p>
-                        </div>
-                    </div>
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-8">
+                    <a href="../../index.html" class="text-2xl font-bold text-gray-800">Learnify<span class="text-indigo-600">AI</span></a>
                 </div>
-
-                <!-- Questions Section -->
                 <div>
-                    <h2 class="text-xl font-semibold text-gray-900">Questions</h2>
-                    <div id="questions-container" class="mt-4 space-y-6">
-                        <!-- Question cards will be dynamically added here -->
+                    <a href="../dashboard/page.html" class="text-gray-600 font-semibold hover:text-indigo-600">Back to Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto py-10 sm:px-6 lg:px-8">
+        <form id="create-quiz-form">
+            <!-- Quiz Details Section -->
+            <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-800">Create a New Quiz</h2>
+                        <p class="text-gray-500 mt-1">Fill out the details below and add your questions.</p>
                     </div>
+                    <button type="button" id="generate-ai-btn" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                        Generate with AI
+                    </button>
                 </div>
                 
-                <!-- Action Buttons -->
-                <div class="flex justify-between items-center pt-5">
-                    <button type="button" id="add-question-btn" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
-                        Add Question
-                    </button>
-                    <button type="submit" id="save-quiz-btn" class="bg-indigo-600 text-white px-8 py-2.5 rounded-lg font-semibold hover:bg-indigo-700 transition duration-300">
-                        Create Quiz
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="quiz-title" class="block text-sm font-medium text-gray-700">Quiz Title</label>
+                        <input type="text" id="quiz-title" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
+                    </div>
+                    <div>
+                        <label for="quiz-subject" class="block text-sm font-medium text-gray-700">Subject</label>
+                        <input type="text" id="quiz-subject" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
+                    </div>
+                    <div>
+                        <label for="skill-level" class="block text-sm font-medium text-gray-700">Skill Level</label>
+                        <select id="skill-level" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm" required>
+                            <option>Beginner</option>
+                            <option>Intermediate</option>
+                            <option>Advanced</option>
+                        </select>
+                    </div>
+                     <div>
+                        <label for="quiz-timer" class="block text-sm font-medium text-gray-700">Timer (minutes)</label>
+                        <input type="number" id="quiz-timer" placeholder="e.g., 10" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Questions Section -->
+            <div id="questions-container" class="mt-8 space-y-6">
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-8 flex justify-between items-center">
+                <button type="button" id="add-question-btn" class="bg-green-500 text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-green-600">
+                    Add Question
+                </button>
+                <button type="submit" id="save-quiz-btn" class="bg-indigo-600 text-white px-8 py-2.5 rounded-lg font-semibold hover:bg-indigo-700">
+                    Save Quiz
+                </button>
+            </div>
+        </form>
+    </main>
+    
+    <!-- AI Generation Modal -->
+    <div id="ai-modal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden items-center justify-center z-50">
+        <div class="relative mx-auto p-8 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold text-gray-900">AI-Assisted Quiz Generation</h3>
+                <button id="ai-modal-close-btn" class="text-gray-400 hover:text-gray-600">&times;</button>
+            </div>
+            <p class="text-sm text-gray-500 mb-6">Generate questions from text, a PDF, or a YouTube video.</p>
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-6" id="ai-tabs">
+                    <button data-tab="text" class="ai-tab active py-3 px-1 text-sm font-semibold">Text</button>
+                    <button data-tab="pdf" class="ai-tab py-3 px-1 text-sm font-semibold text-gray-500">PDF</button>
+                    <button data-tab="youtube" class="ai-tab py-3 px-1 text-sm font-semibold text-gray-500" disabled>YouTube (Coming Soon)</button>
+                </nav>
+            </div>
+            <form id="ai-generate-form" class="mt-6 space-y-4">
+                <div id="text-input-area">
+                    <label for="ai-context" class="block text-sm font-medium text-gray-700">Topic or Text Content</label>
+                    <textarea id="ai-context" rows="6" class="mt-1 w-full border-gray-300 rounded-md shadow-sm" placeholder="Enter a topic..."></textarea>
+                </div>
+                <div id="pdf-input-area" class="hidden">
+                    <label for="ai-pdf" class="block text-sm font-medium text-gray-700">Upload PDF</label>
+                    <input type="file" id="ai-pdf" accept=".pdf" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/>
+                </div>
+                <div id="youtube-input-area" class="hidden">
+                    <!-- Content for this tab is handled by the tab switching logic -->
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="ai-skill-level" class="block text-sm font-medium text-gray-700">Skill Level</label>
+                        <select id="ai-skill-level" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm" required>
+                            <option>Beginner</option>
+                            <option>Intermediate</option>
+                            <option>Advanced</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="ai-num-questions" class="block text-sm font-medium text-gray-700">Number of Questions</label>
+                        <input type="number" id="ai-num-questions" value="5" min="1" class="mt-1 w-full border-gray-300 rounded-md shadow-sm" placeholder="e.g., 5">
+                    </div>
+                </div>
+                <div class="text-right pt-4">
+                    <button type="submit" class="bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-indigo-700 w-full flex items-center justify-center">
+                        <span id="ai-gen-text">Generate Questions</span>
+                        <div id="ai-gen-loader" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     </button>
                 </div>
             </form>
         </div>
-    </main>
-    
-    <!-- Modal for notifications -->
-    <div id="notification-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden items-center justify-center z-50">
-        <div class="relative mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div class="mt-3 text-center">
-                <p id="modal-message" class="text-lg leading-6 font-medium text-gray-900"></p>
-                <div class="mt-4 px-7 py-3">
-                    <button id="modal-close-btn" class="px-4 py-2 bg-indigo-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                        OK
-                    </button>
-                </div>
-            </div>
-        </div>
     </div>
-
-    <!-- Firebase SDKs -->
+    
     <script type="module">
         import { firebaseConfig } from '../../firebase-keys.js';
-
+        import { generateQuizFromContext } from '../../ai/flows/generate_quiz.js';
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, doc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const { pdfjsLib } = globalThis;
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.mjs`;
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -115,60 +153,47 @@
         const addQuestionBtn = document.getElementById('add-question-btn');
         const createQuizForm = document.getElementById('create-quiz-form');
         
-        const modal = document.getElementById('notification-modal');
-        const modalMessage = document.getElementById('modal-message');
-        const modalCloseBtn = document.getElementById('modal-close-btn');
+        const aiModal = document.getElementById('ai-modal');
+        const generateAiBtn = document.getElementById('generate-ai-btn');
+        const aiModalCloseBtn = document.getElementById('ai-modal-close-btn');
+        const aiGenerateForm = document.getElementById('ai-generate-form');
+        const aiGenLoader = document.getElementById('ai-gen-loader');
+        const aiGenText = document.getElementById('ai-gen-text');
+        const aiTabs = document.getElementById('ai-tabs');
+        const textInputArea = document.getElementById('text-input-area');
+        const pdfInputArea = document.getElementById('pdf-input-area');
+        const youtubeInputArea = document.getElementById('youtube-input-area');
 
-        function showModal(message) {
-            modalMessage.textContent = message;
-            modal.style.display = 'flex';
-        }
-        modalCloseBtn.onclick = () => {
-            modal.style.display = 'none';
-            if (modal.dataset.redirect === 'true') {
-                 window.location.href = '../dashboard/page.html';
-            }
-        };
-
-        const addOption = (optionsContainer, questionIndex) => {
+        const addOption = (optionsContainer, questionIndex, optionText = '', isCorrect = false) => {
             const optionIndex = optionsContainer.children.length;
             const optionDiv = document.createElement('div');
             optionDiv.className = 'option-input-group';
             optionDiv.innerHTML = `
-                <input type="radio" name="correct-answer-${questionIndex}" value="${optionIndex}" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500 flex-shrink-0" required>
-                <input type="text" class="option-text block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" placeholder="Option ${optionIndex + 1}" required>
-                <button type="button" class="remove-option-btn text-gray-400 hover:text-red-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-                </button>
+                <input type="radio" name="correct-answer-${questionIndex}" value="${optionIndex}" class="h-4 w-4 text-indigo-600 border-gray-300" required ${isCorrect ? 'checked' : ''}>
+                <input type="text" class="option-text block w-full px-3 py-2 border border-gray-300 rounded-md" value="${optionText}" required>
+                <button type="button" class="remove-option-btn text-gray-400 hover:text-red-600">&times;</button>
             `;
             optionsContainer.appendChild(optionDiv);
             optionDiv.querySelector('.remove-option-btn').addEventListener('click', () => optionDiv.remove());
         };
 
-        const addQuestionCard = () => {
+        const addQuestionCard = (questionData = null) => {
             const questionIndex = questionsContainer.children.length;
             const card = document.createElement('div');
-            card.className = 'bg-white p-6 rounded-lg question-card';
+            card.className = 'bg-white p-6 rounded-xl shadow-sm border border-gray-200 question-card';
             card.innerHTML = `
-                <div class="flex justify-between items-start mb-4">
-                    <h3 class="text-lg font-medium text-gray-800">Question ${questionIndex + 1}</h3>
-                    <button type="button" class="remove-question-btn text-gray-500 hover:text-red-700">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button>
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-gray-700">Question ${questionIndex + 1}</h3>
+                    <button type="button" class="remove-question-btn text-red-500 hover:text-red-700 font-semibold">Remove</button>
                 </div>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Question Text</label>
-                        <textarea class="question-text mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" rows="2" required></textarea>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Options</label>
-                        <p class="text-xs text-gray-500">Select the correct answer.</p>
-                        <div class="options-container mt-2 space-y-3"></div>
-                        <button type="button" class="add-option-btn mt-3 text-sm font-medium text-indigo-600 hover:text-indigo-800">
-                            + Add Option
-                        </button>
-                    </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Question Text</label>
+                    <textarea class="question-text mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>${questionData ? questionData.questionText : ''}</textarea>
+                </div>
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700">Options</label>
+                    <div class="options-container mt-2 space-y-2"></div>
+                    <button type="button" class="add-option-btn mt-2 text-sm text-indigo-600">+ Add Option</button>
                 </div>
             `;
             questionsContainer.appendChild(card);
@@ -176,25 +201,93 @@
             const optionsContainer = card.querySelector('.options-container');
             const addOptionBtn = card.querySelector('.add-option-btn');
             addOptionBtn.addEventListener('click', () => addOption(optionsContainer, questionIndex));
-            
-            addOption(optionsContainer, questionIndex);
-            addOption(optionsContainer, questionIndex);
 
-            card.querySelector('.remove-question-btn').addEventListener('click', () => {
-                card.remove();
-                Array.from(questionsContainer.children).forEach((child, index) => {
-                    child.querySelector('h3').textContent = `Question ${index + 1}`;
-                    child.querySelectorAll('input[type="radio"]').forEach(radio => radio.name = `correct-answer-${index}`);
+            if (questionData && questionData.options) {
+                questionData.options.forEach((opt, i) => {
+                    addOption(optionsContainer, questionIndex, opt, i === questionData.correctAnswerIndex);
                 });
+            } else {
+                addOption(optionsContainer, questionIndex);
+                addOption(optionsContainer, questionIndex);
+            }
+            card.querySelector('.remove-question-btn').addEventListener('click', () => card.remove());
+        };
+
+        generateAiBtn.addEventListener('click', () => aiModal.style.display = 'flex');
+        aiModalCloseBtn.addEventListener('click', () => aiModal.style.display = 'none');
+        
+        aiTabs.addEventListener('click', (e) => {
+            if (e.target.tagName !== 'BUTTON' || e.target.disabled) return;
+            aiTabs.querySelectorAll('.ai-tab').forEach(tab => tab.classList.remove('active'));
+            e.target.classList.add('active');
+            textInputArea.classList.toggle('hidden', e.target.dataset.tab !== 'text');
+            pdfInputArea.classList.toggle('hidden', e.target.dataset.tab !== 'pdf');
+            youtubeInputArea.classList.toggle('hidden', e.target.dataset.tab !== 'youtube');
+        });
+
+        const extractTextFromPdf = async (file) => {
+            const fileReader = new FileReader();
+            return new Promise((resolve, reject) => {
+                fileReader.onload = async (event) => {
+                    try {
+                        const typedarray = new Uint8Array(event.target.result);
+                        const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                        let textContent = '';
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const text = await page.getTextContent();
+                            textContent += text.items.map(s => s.str).join(' ');
+                        }
+                        resolve(textContent);
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                fileReader.onerror = reject;
+                fileReader.readAsArrayBuffer(file);
             });
         };
 
-        addQuestionBtn.addEventListener('click', addQuestionCard);
+        aiGenerateForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            let context = '';
+            const activeTab = aiTabs.querySelector('.active').dataset.tab;
+            
+            aiGenText.style.display = 'none';
+            aiGenLoader.style.display = 'block';
+
+            try {
+                if (activeTab === 'text') {
+                    context = document.getElementById('ai-context').value;
+                    if (!context.trim()) throw new Error("Text content cannot be empty.");
+                } else if (activeTab === 'pdf') {
+                    const pdfFile = document.getElementById('ai-pdf').files[0];
+                    if (!pdfFile) throw new Error("Please select a PDF file.");
+                    context = await extractTextFromPdf(pdfFile);
+                }
+
+                const numQuestions = document.getElementById('ai-num-questions').value;
+                const skillLevel = document.getElementById('ai-skill-level').value;
+
+                const generatedQuestions = await generateQuizFromContext(context, numQuestions, skillLevel);
+                questionsContainer.innerHTML = '';
+                generatedQuestions.forEach(q => addQuestionCard(q));
+                aiModal.style.display = 'none';
+
+            } catch (error) {
+                alert(`AI Generation Failed: ${error.message}`);
+            } finally {
+                aiGenText.style.display = 'block';
+                aiGenLoader.style.display = 'none';
+            }
+        });
+
+        addQuestionBtn.addEventListener('click', () => addQuestionCard());
 
         createQuizForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!currentUser) {
-                showModal("You must be logged in to create a quiz.");
+                alert("You must be logged in to create a quiz.");
                 return;
             }
 
@@ -202,16 +295,15 @@
                 title: document.getElementById('quiz-title').value,
                 subject: document.getElementById('quiz-subject').value,
                 skillLevel: document.getElementById('skill-level').value,
-                timer: Number(document.getElementById('quiz-timer').value) || 0,
-                classroom: document.getElementById('classroom').value,
                 teacherId: currentUser.uid,
                 createdAt: new Date(),
                 questionsCount: questionsContainer.children.length,
-                attempts: 0
+                attempts: 0,
+                classroom: "public"
             };
 
             if (quizData.questionsCount === 0) {
-                showModal("Please add at least one question.");
+                alert("Please add at least one question.");
                 return;
             }
 
@@ -220,16 +312,10 @@
                 const batch = writeBatch(db);
                 const questionCards = questionsContainer.querySelectorAll('.question-card');
 
-                for (const card of questionCards) {
+                questionCards.forEach((card) => {
                     const questionText = card.querySelector('.question-text').value;
                     const options = Array.from(card.querySelectorAll('.option-text')).map(input => input.value);
-                    const correctRadio = card.querySelector('input[type="radio"]:checked');
-
-                    if (!correctRadio) {
-                        showModal("Please select a correct answer for every question.");
-                        return;
-                    }
-                    const correctAnswerIndex = correctRadio.value;
+                    const correctAnswerIndex = card.querySelector('input[type="radio"]:checked').value;
 
                     const questionDocRef = doc(collection(db, "quizzes", quizDocRef.id, "questions"));
                     batch.set(questionDocRef, {
@@ -237,15 +323,14 @@
                         options: options,
                         correctAnswer: parseInt(correctAnswerIndex)
                     });
-                }
+                });
 
                 await batch.commit();
-                modal.dataset.redirect = 'true';
-                showModal("Quiz created successfully!");
-
+                alert("Quiz created successfully!");
+                window.location.href = '../dashboard/page.html';
             } catch (error) {
                 console.error("Error creating quiz: ", error);
-                showModal("An error occurred while saving the quiz. Please try again.");
+                alert("An error occurred while saving the quiz. Please try again.");
             }
         });
 
@@ -253,9 +338,7 @@
             if (user) {
                 currentUser = user;
             } else {
-                currentUser = null;
-                const baseUrl = window.location.origin;
-                window.location.href = `${baseUrl}/login/page.html`;
+                window.location.href = '../../login/page.html';
             }
         });
 

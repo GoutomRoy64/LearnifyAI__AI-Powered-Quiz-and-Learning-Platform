@@ -6,6 +6,7 @@
     <title>My Profile - LearnifyAI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="../../styles/profile.css">
 </head>
 <body class="bg-gray-50">
@@ -35,7 +36,7 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <!-- Left Column: Profile Card -->
             <div class="md:col-span-1">
-                <div class="bg-white p-6 rounded-lg shadow-sm border">
+                <div class="profile-card">
                     <div class="flex flex-col items-center">
                         <span id="profile-initial" class="h-24 w-24 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-4xl font-bold mb-4"></span>
                         <h2 id="profile-name" class="text-2xl font-bold text-gray-900">Loading...</h2>
@@ -50,11 +51,11 @@
             <div class="md:col-span-2 space-y-8">
                 <!-- Stats -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-white p-6 rounded-lg shadow-sm border">
+                    <div class="stat-card">
                         <h3 class="text-lg font-medium text-gray-500">Total Quizzes Taken</h3>
                         <p id="total-quizzes" class="text-4xl font-bold text-gray-900 mt-2">0</p>
                     </div>
-                    <div class="bg-white p-6 rounded-lg shadow-sm border">
+                    <div class="stat-card">
                         <h3 class="text-lg font-medium text-gray-500">Average Score</h3>
                         <p id="average-score" class="text-4xl font-bold text-gray-900 mt-2">0%</p>
                     </div>
@@ -67,12 +68,26 @@
                         <p>Loading performance data...</p>
                     </div>
                 </div>
+                
+                <!-- AI-Powered Advice -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">AI-Powered Advice</h3>
+                    <p class="text-sm text-gray-600 mb-4">Get personalized advice from our AI Study Buddy based on your quiz performance.</p>
+                    <button id="get-advice-btn" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-semibold hover:bg-indigo-700 transition flex justify-center items-center">
+                        <span class="btn-text">Analyze My Performance</span>
+                        <div class="analyze-loader"></div>
+                    </button>
+                    <div id="ai-advice-container" class="mt-4 hidden">
+                        <div class="ai-advice-loader"></div>
+                        <div id="ai-advice-content" class="text-gray-700"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
 
     <!-- Edit Profile Modal -->
-    <div id="edit-profile-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
+    <div id="edit-profile-modal" class="modal">
         <div class="relative mx-auto p-8 border w-full max-w-md shadow-lg rounded-md bg-white">
             <h3 class="text-2xl font-bold text-gray-900">Edit Profile</h3>
             <form id="edit-profile-form" class="mt-6 space-y-4">
@@ -90,6 +105,7 @@
 
     <script type="module">
         import { firebaseConfig } from '../../firebase-keys.js';
+        import { generateAdviceFromPerformance } from '../../ai/flows/generate_advice.js';
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -99,6 +115,7 @@
         const db = getFirestore(app);
 
         let currentUser = null;
+        let performanceData = {};
 
         const profileInitialEl = document.getElementById('profile-initial');
         const profileNameEl = document.getElementById('profile-name');
@@ -109,12 +126,16 @@
         const subjectPerformanceListEl = document.getElementById('subject-performance-list');
         const logoutBtn = document.getElementById('logout-btn');
         
-        // Modal elements
         const editProfileModal = document.getElementById('edit-profile-modal');
         const editProfileBtn = document.getElementById('edit-profile-btn');
         const modalCancelBtn = document.getElementById('modal-cancel-btn');
         const editProfileForm = document.getElementById('edit-profile-form');
         const editNameInput = document.getElementById('edit-name');
+
+        const getAdviceBtn = document.getElementById('get-advice-btn');
+        const aiAdviceContainer = document.getElementById('ai-advice-container');
+        const aiAdviceLoader = aiAdviceContainer.querySelector('.ai-advice-loader');
+        const aiAdviceContent = document.getElementById('ai-advice-content');
 
         editProfileBtn.addEventListener('click', () => editProfileModal.style.display = 'flex');
         modalCancelBtn.addEventListener('click', () => editProfileModal.style.display = 'none');
@@ -125,10 +146,10 @@
 
             if (userSnap.exists()) {
                 const userData = userSnap.data();
-                profileInitialEl.textContent = userData.name.charAt(0);
+                profileInitialEl.textContent = userData.name.charAt(0).toUpperCase();
                 profileNameEl.textContent = userData.name;
                 profileEmailEl.textContent = userData.email;
-                profileIdEl.textContent = `ID: user-${userData.userId}`;
+                profileIdEl.textContent = `ID: ${userData.userId}`;
                 editNameInput.value = userData.name;
             }
         };
@@ -143,7 +164,6 @@
                 const totalScore = attempts.reduce((sum, a) => sum + a.score, 0);
                 averageScoreEl.textContent = `${Math.round(totalScore / attempts.length)}%`;
 
-                // Get subjects for each quiz
                 const quizIds = [...new Set(attempts.map(a => a.quizId))];
                 const quizPromises = quizIds.map(id => getDoc(doc(db, "quizzes", id)));
                 const quizDocs = await Promise.all(quizPromises);
@@ -162,6 +182,8 @@
                     performanceBySubject[subject].scores.push(a.score);
                     performanceBySubject[subject].count++;
                 });
+                
+                performanceData = performanceBySubject;
 
                 subjectPerformanceListEl.innerHTML = '';
                 for (const subject in performanceBySubject) {
@@ -176,8 +198,30 @@
                 }
             } else {
                  subjectPerformanceListEl.innerHTML = '<p class="text-gray-500">No quiz data available to analyze performance.</p>';
+                 getAdviceBtn.disabled = true;
             }
         };
+
+        const getAIAdvice = async () => {
+            aiAdviceContainer.style.display = 'block';
+            aiAdviceLoader.style.display = 'block';
+            aiAdviceContent.innerHTML = '';
+            getAdviceBtn.classList.add('loading');
+            getAdviceBtn.disabled = true;
+            
+            try {
+                const advice = await generateAdviceFromPerformance(performanceData);
+                aiAdviceContent.innerHTML = marked.parse(advice);
+            } catch (error) {
+                aiAdviceContent.innerHTML = `<p class="text-red-500">Sorry, I couldn't generate advice at this time. Please try again later.</p>`;
+            } finally {
+                aiAdviceLoader.style.display = 'none';
+                getAdviceBtn.classList.remove('loading');
+                getAdviceBtn.disabled = false;
+            }
+        };
+
+        getAdviceBtn.addEventListener('click', getAIAdvice);
 
         editProfileForm.addEventListener('submit', async (e) => {
             e.preventDefault();

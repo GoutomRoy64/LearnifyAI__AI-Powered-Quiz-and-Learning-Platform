@@ -18,10 +18,14 @@
                     <a href="../../../index.html" class="text-2xl font-bold text-gray-800">Learnify<span class="text-indigo-600">AI</span></a>
                     <div class="hidden md:flex items-center space-x-4">
                          <a href="../../dashboard/page.html" class="text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium">Dashboard</a>
-                         <a href="../page.html" class="text-indigo-600 font-semibold border-b-2 border-indigo-600 px-3 py-2 text-sm">Classrooms</a>
+                         <a href="../page.html" class="navbar-link-active px-3 py-2 text-sm font-semibold">Classrooms</a>
+                         <a href="../../study-buddy/page.html" class="text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium">Study Buddy</a>
                     </div>
                 </div>
-                <button id="logout-btn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition text-sm">Logout</button>
+                <div class="flex items-center space-x-4">
+                    <a href="../../profile/page.html" class="text-gray-700 font-semibold hover:text-indigo-600 text-sm">Profile</a>
+                    <button id="logout-btn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition text-sm">Logout</button>
+                </div>
             </div>
         </div>
     </nav>
@@ -126,18 +130,28 @@
             querySnapshot.forEach(doc => {
                 const quiz = doc.data();
                 const attempt = quizHistory.find(h => h.quizId === doc.id);
+                const now = new Date();
+                const dueDate = quiz.dueDate ? quiz.dueDate.toDate() : null;
+                const isPastDue = dueDate && now > dueDate;
+
+                let actionButtonHtml = '';
+                if (attempt) {
+                    actionButtonHtml = `<a href="../../quiz/results/page.html?attemptId=${attempt.id}" class="text-sm font-medium bg-gray-200 text-gray-700 px-4 py-2 rounded-md">View Results</a>`;
+                } else if (isPastDue) {
+                    actionButtonHtml = `<button class="text-sm font-medium bg-red-100 text-red-700 px-4 py-2 rounded-md cursor-not-allowed">Past Due</button>`;
+                } else {
+                    actionButtonHtml = `<a href="../../quiz/page.html?id=${doc.id}" class="text-sm font-medium bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">Start Quiz</a>`;
+                }
 
                 const quizCard = `
                     <div class="bg-white p-5 rounded-lg shadow-sm border flex justify-between items-center">
                         <div>
                             <h4 class="font-bold text-gray-800">${quiz.title}</h4>
                             <p class="text-sm text-gray-500 mt-1">${quiz.questionsCount || 0} questions</p>
+                            ${dueDate ? `<p class="text-xs text-gray-500 mt-1">Due by: ${dueDate.toLocaleDateString()}</p>` : ''}
                         </div>
                         <div class="mt-4">
-                        ${attempt
-                            ? `<a href="../../quiz/results/page.html?attemptId=${attempt.id}" class="text-sm font-medium bg-gray-200 text-gray-700 px-4 py-2 rounded-md">View Results</a>`
-                            : `<a href="../../quiz/page.html?id=${doc.id}" class="text-sm font-medium bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">Start Quiz</a>`
-                        }
+                            ${actionButtonHtml}
                         </div>
                     </div>
                 `;

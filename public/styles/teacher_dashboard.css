@@ -1,17 +1,24 @@
-/* styles/dashboard.css */
+/* styles/teacher_dashboard.css */
 
-/* General body styling for dashboard pages */
+/* General body styling */
 body {
     font-family: 'Inter', sans-serif;
     background-color: #f9fafb; /* light gray */
 }
 
-/* Styling for the skill level badges */
+/* Navbar and active link styling */
+.navbar-link-active {
+    color: #4f46e5; /* indigo-600 */
+    border-bottom-width: 2px;
+    border-color: #4f46e5;
+}
+
+/* Styling for skill level badges */
 .skill-badge {
-    padding: 0.125rem 0.5rem;
+    padding: 0.25rem 0.75rem;
     border-radius: 9999px;
     font-size: 0.75rem;
-    font-weight: 500;
+    font-weight: 600;
     text-transform: capitalize;
 }
 
@@ -30,11 +37,20 @@ body {
     color: #991b1b; /* red-800 */
 }
 
-/* Styling for the active tab on the student dashboard */
-.tab-active {
-    border-bottom-width: 2px;
-    border-color: #4f46e5; /* indigo-600 */
-    color: #4f46e5;
+/* Styling for the quiz table */
+.quiz-table {
+    min-width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.quiz-table thead th {
+    background-color: #f9fafb; /* gray-50 */
+    border-bottom: 1px solid #e5e7eb; /* gray-200 */
+}
+
+.quiz-table tbody tr:hover {
+    background-color: #f3f4f6; /* gray-100 */
 }
 
 /* Styling for the teacher's quiz action menu (...) */
@@ -52,12 +68,9 @@ body {
     border: 1px solid #e5e7eb; /* gray-200 */
 }
 
-/* Add a subtle transition to quiz cards on hover */
-.quiz-card {
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-
-.quiz-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+/* New class to make the menu open upwards */
+.menu-open-up {
+    bottom: 100%;
+    margin-top: 0;
+    margin-bottom: 0.5rem;
 }

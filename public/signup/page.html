@@ -36,7 +36,7 @@
                 </div>
             </div>
             <div class="mb-6">
-                <label class="block text-gray-100 mb-2">I am a...</label>
+                <label class="role-label block text-gray-100 mb-2">I am a...</label>
                 <div class="role-selection">
                     <div>
                         <input type="radio" id="role-student" name="role" value="student" class="role-radio" checked>
@@ -121,14 +121,15 @@
             const password = passwordInput.value;
             const userAnswer = parseInt(captchaInputEl.value, 10);
             
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            // FIX: Using a more robust regex for email validation
+            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
             if (!name.trim()) {
                 showModal("Validation Error", "Please enter your full name.");
                 return false;
             }
             if (!emailRegex.test(email)) {
-                showModal("Validation Error", "Please enter a valid email address.");
+                showModal("Validation Error", "Please enter a valid email address format (e.g., user@example.com).");
                 return false;
             }
             if (password.length < 6) {

@@ -18,10 +18,14 @@
                     <a href="../../index.html" class="text-2xl font-bold text-gray-800">Learnify<span class="text-indigo-600">AI</span></a>
                     <div class="hidden md:flex items-center space-x-4">
                          <a href="../dashboard/page.html" class="text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium">Dashboard</a>
+                         <a href="#" class="navbar-link-active px-3 py-2 text-sm font-semibold">Classrooms</a>
                          <a href="../study-buddy/page.html" class="text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium">Study Buddy</a>
                     </div>
                 </div>
-                <button id="logout-btn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition text-sm">Logout</button>
+                <div class="flex items-center space-x-4">
+                    <a href="../profile/page.html" class="text-gray-700 font-semibold hover:text-indigo-600 text-sm">Profile</a>
+                    <button id="logout-btn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition text-sm">Logout</button>
+                </div>
             </div>
         </div>
     </nav>
@@ -31,57 +35,48 @@
         <!-- Welcome Header -->
         <div class="px-4 md:px-0">
             <h1 id="welcome-message" class="text-3xl font-bold text-gray-800">Welcome!</h1>
-            <p class="text-gray-500 mt-1">Ready to test your knowledge or check on your classrooms?</p>
+            <p class="text-gray-500 mt-1">Here you can manage your classrooms and join new ones.</p>
             <p class="text-xs text-gray-400 mt-2" id="user-id-display"></p>
         </div>
 
-        <!-- Tabs -->
-        <div class="mt-8 border-b border-gray-200">
-            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-                <a href="../dashboard/page.html" class="text-gray-500 hover:text-gray-700 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                    Quizzes
-                </a>
-                <a href="#" class="tab-active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" aria-current="page">
-                    Classrooms
-                </a>
-            </nav>
-        </div>
-
         <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- My Classrooms Section -->
-            <div class="space-y-6">
-                <h2 class="text-xl font-bold text-gray-800">My Classrooms</h2>
-                <div id="my-classrooms-list" class="space-y-4">
-                    <p class="text-gray-500 bg-white p-6 rounded-lg shadow-sm border">Loading...</p>
+            <!-- Left Column -->
+            <div class="space-y-8">
+                <!-- My Classrooms Section -->
+                <div class="space-y-6">
+                    <h2 class="text-xl font-bold text-gray-800 px-4 md:px-0">My Classrooms</h2>
+                    <div id="my-classrooms-list" class="space-y-4">
+                        <p class="text-gray-500">Loading...</p>
+                    </div>
+                </div>
+
+                <!-- My Join Requests Section -->
+                <div class="space-y-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 px-4 md:px-0">My Join Requests</h2>
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                        <table class="requests-table">
+                             <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Classroom</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="join-requests-body" class="bg-white divide-y divide-gray-200">
+                                <!-- Request rows go here -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <!-- Available Classrooms Section -->
+            <!-- Right Column -->
             <div class="space-y-6">
-                <h2 class="text-xl font-bold text-gray-800">Available Classrooms</h2>
-                <p class="text-sm text-gray-500">Browse and request to join classrooms.</p>
+                <h2 class="text-xl font-bold text-gray-800 px-4 md:px-0">Available Classrooms</h2>
+                <p class="text-sm text-gray-500 px-4 md:px-0">Browse and request to join classrooms.</p>
                 <div id="available-classrooms-list" class="space-y-4">
                     <p class="text-gray-500">Loading available classrooms...</p>
                 </div>
-            </div>
-        </div>
-        
-        <!-- My Join Requests Section -->
-        <div class="mt-12">
-            <h2 class="text-xl font-bold text-gray-800 mb-4">My Join Requests</h2>
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <table class="min-w-full divide-y divide-gray-200">
-                     <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Classroom</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="join-requests-body" class="bg-white divide-y divide-gray-200">
-                        <!-- Request rows go here -->
-                    </tbody>
-                </table>
             </div>
         </div>
     </main>
@@ -108,15 +103,14 @@
         const renderMyClassrooms = (classrooms) => {
             myClassroomsListEl.innerHTML = '';
             if (classrooms.length === 0) {
-                 myClassroomsListEl.innerHTML = '<div class="bg-white p-6 rounded-lg shadow-sm border"><p class="text-gray-500">You are not a member of any classrooms yet.</p></div>';
+                 myClassroomsListEl.innerHTML = '<div class="classroom-card p-6"><p class="text-gray-500">You are not a member of any classrooms yet.</p></div>';
                 return;
             }
             classrooms.forEach(c => {
                 const card = `
-                    <div class="bg-white p-6 rounded-lg shadow-sm border">
+                    <div class="classroom-card p-6">
                         <h3 class="font-bold text-lg text-gray-900">${c.name}</h3>
                         <p class="text-sm text-gray-600 mt-1">${c.description} - Taught by ${c.teacherName}</p>
-                        <p class="text-sm text-gray-500 mt-2">${c.studentCount || 0} student(s)</p>
                         <a href="./view/page.html?id=${c.id}" class="block mt-4 w-full text-center bg-indigo-600 text-white py-2 rounded-md font-semibold text-sm hover:bg-indigo-700">View Classroom</a>
                     </div>
                 `;
@@ -127,7 +121,7 @@
         const renderAvailableClassrooms = (classrooms) => {
             availableClassroomsListEl.innerHTML = '';
              if (classrooms.length === 0) {
-                availableClassroomsListEl.innerHTML = '<p class="text-gray-500">There are no new classrooms available to join.</p>';
+                availableClassroomsListEl.innerHTML = '<p class="text-gray-500 p-4">There are no new classrooms available to join.</p>';
                 return;
             }
             classrooms.forEach(c => {
@@ -232,7 +226,7 @@
 
             } catch (error) {
                 console.error("Failed to load classroom data:", error);
-                myClassroomsListEl.innerHTML = '<div class="bg-white p-6 rounded-lg shadow-sm border"><p class="text-red-500">Could not load classrooms. Please try again later.</p></div>';
+                myClassroomsListEl.innerHTML = '<div class="classroom-card p-6"><p class="text-red-500">Could not load classrooms. Please try again later.</p></div>';
                 availableClassroomsListEl.innerHTML = '<p class="text-red-500">Could not load available classrooms.</p>';
                 joinRequestsBodyEl.innerHTML = '<tr><td colspan="3" class="text-center p-4 text-red-500">Could not load join requests.</td></tr>';
             }
@@ -245,8 +239,8 @@
                 if (userDoc.exists()) {
                     const userData = userDoc.data();
                     currentUser.displayName = userData.name;
-                    welcomeMessageEl.textContent = `Welcome, ${userData.name}!`;
-                    userIdDisplayEl.textContent = `Your ID: user-${userData.userId}`;
+                    welcomeMessageEl.innerHTML = `Welcome, <span class="welcome-name">${userData.name}</span>!`;
+                    userIdDisplayEl.textContent = `Your ID: ${userData.userId}`;
                 }
                 loadAllData(user);
             } else {
