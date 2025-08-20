@@ -12,7 +12,8 @@ LearnifyAI is a modern, full-stack web application designed to be a personal AI-
 
 ---
 
-### **[Live Demo](https:https://learnifyai1.web.app)**
+
+### [Live Demo](https://learnifyai1.web.app)
 
 ---
 
