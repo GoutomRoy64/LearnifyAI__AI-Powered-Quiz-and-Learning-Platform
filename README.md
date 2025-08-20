@@ -12,7 +12,7 @@ LearnifyAI is a modern, full-stack web application designed to be a personal AI-
 
 ---
 
-### **[Live Demo](learnifyai1.web.app)**
+### **[Live Demo](https:https://learnifyai1.web.app)**
 
 ---
 
@@ -85,32 +85,6 @@ To run this project locally, follow these steps:
 
 ---
 
-## File Structure
-
-The project is organized into a clean and manageable structure:
-
-
-/LearnifyAI__AI-Powered-Quiz-and-Learning-Platform/
-|
-|-- public/
-|   |-- index.html              (Landing Page)
-|   |-- styles/                 (All CSS files)
-|   |   |-- auth.css
-|   |   |-- classroom.css
-|   |   -- ... |   |-- login/ |   |   -- page.html
-|   |-- signup/
-|   |   -- page.html |   |-- student/ |   |   |-- dashboard/ |   |   |-- classrooms/ |   |   |-- quiz/ |   |   |-- profile/ |   |   -- study-buddy/
-|   |-- teacher/
-|   |   |-- dashboard/
-|   |   |-- classrooms/
-|   |   -- quiz/ |   |-- ai/                     (AI-related JavaScript logic) |   |   |-- flows/ |   |   |   |-- generate_advice.js |   |   |   |-- generate_content.js |   |   |   -- generate_quiz.js
-|   |   -- page.js               (AI API Key) |   -- firebase-keys.js        (Firebase Configuration)
-|
-|-- SRS_Documents/
-|   -- Software Requirements Specification (SRS) for LearnifyAI.pdf | |-- .gitignore                  (Specifies files for Git to ignore) -- README.md                   (Project documentation)
-
-
----
 
 ## Security
 
